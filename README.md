@@ -1,2 +1,2 @@
 # stockholm
-A stock information crawler for SS/SZ
+A stock data crawler for SS/SZ based on YQL
