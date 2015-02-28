@@ -1,5 +1,6 @@
 import requests
 import timeit
+import time
 import json
 
 class Static:
@@ -69,6 +70,7 @@ def load_quote_info(quote, is_retry):
         except(KeyError, ValueError, TypeError):
             print("Error: Failed to load stock info... " + quote['Symbol'] + "/" + quote['Name'])
             if(not is_retry):
+                time.sleep(1)
                 load_quote_info(quote, True) ## retry once for network issue
         
     print(quote)
@@ -105,6 +107,7 @@ def load_quote_data(quote, start_date, end_date, is_retry):
         except(KeyError, ValueError, TypeError):
             print("Error: Failed to load stock data... " + quote['Symbol'] + "/" + quote['Name'])
             if(not is_retry):
+                time.sleep(1)
                 load_quote_data(quote, start_date, end_date, True) ## retry once for network issue
     
     print("load_quote_data end... time cost: " + str(round(timeit.default_timer() - start)) + "s")
