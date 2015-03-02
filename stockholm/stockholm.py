@@ -9,7 +9,7 @@ from pymongo import MongoClient
 from multiprocessing.dummy import Pool as ThreadPool
 from functools import partial
 
-class Static:
+class Static():
     all_quotes_url = 'http://money.finance.sina.com.cn/d/api/openapi_proxy.php'
     yql_url = 'http://query.yahooapis.com/v1/public/yql'
     export_folder = './export'
@@ -25,6 +25,41 @@ class Static:
                     columns.append(key)
             columns.sort()
         return columns
+
+class KDJ():
+    def _avg(self, a):
+        length = len(a)
+        return sum(a) / length
+    
+    def _getMA(self, values, window):
+        array = []
+        x = window
+        while x < len(values):
+            curmb = self._avg(values[x-window:x])
+            array.append(curmb)
+            x += 1
+        return array
+    
+    def _getRSV(self, arrays):
+        rsv = []
+        times = []
+        x = 9
+        while x < len(arrays):
+            high = max(map(lambda x: x[0], arrays[x-9:x]))
+            low = min(map(lambda x: x[1], arrays[x-9:x]))
+            close = arrays[x-1][2]
+            rsv.append( (close-low)/(high-low)*100 )
+            t = int(time.mktime(arrays[x-1][3].timetuple())) * 1000
+            times.append(t)
+            x += 1
+        return times, rsv
+    
+    def getKDJ(self, quote_data):
+        t, rsv = self._getRSV(quote_data)
+        k = self._getMA(rsv,3)
+        d = self._getMA(k,3)
+        j = map(lambda x: 3*x[0]-2*x[1], zip(k[3:], d))
+        return zip(t[2:], k), zip(t[5:], d), zip(t[5:], j)
 
 def load_all_quote_symbol():
     print("load_all_quote_symbol start..." + "\n")
@@ -153,6 +188,39 @@ def load_all_quote_data(all_quotes, start_date, end_date):
     print("load_all_quote_data end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
     return all_quotes
 
+def data_process(all_quotes):
+    print("data_process start..." + "\n")
+    kdj = KDJ()
+    start = timeit.default_timer()
+    
+    for quote in all_quotes:
+        if('Data' in quote):
+            temp_data = []
+            for quote_data in quote['Data']:
+                if(quote_data['Volume'] != '000'):
+                    d = {}
+                    d['Open'] = float(quote_data['Open'])
+                    d['Adj_Close'] = float(quote_data['Adj_Close'])
+                    d['Close'] = float(quote_data['Close'])
+                    d['High'] = float(quote_data['High'])
+                    d['Low'] = float(quote_data['Low'])
+                    d['Volume'] = int(quote_data['Volume'])
+                    d['Date'] = quote_data['Date']
+                    temp_data.append(d)
+            quote['Data'] = temp_data
+
+    ## calculate KDJ
+    for quote in all_quotes:
+        if('Data' in quote):
+            for quote_data in quote['Data']:
+                print(quote_data)
+                res = kdj.getKDJ(quote_data)
+                print(res[0])
+                print(res[1])
+                print(res[2])
+
+    print("data_process end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
+
 def data_export(all_quotes, export_type):
     static = Static()
     start = timeit.default_timer()
@@ -197,5 +265,6 @@ if __name__ == '__main__':
     all_quotes = load_all_quote_symbol()
     print("total " + str(len(all_quotes)) + " quotes are loaded..." + "\n")
     ##load_all_quote_info(all_quotes)
-    load_all_quote_data(all_quotes, "2015-02-01", "2015-03-01")
+    load_all_quote_data(all_quotes[0:10], "2015-02-01", "2015-03-01")
+    data_process(all_quotes[0:10])
     data_export(all_quotes, 'csv')
