@@ -19,7 +19,7 @@ class Static():
         if(quote is not None):
             for key in quote.keys():
                 if(key == 'Data'):
-                    for data_key in quote['Data'][0]:
+                    for data_key in quote['Data'][-1]:
                         columns.append("data." + data_key)
                 else:
                     columns.append(key)
@@ -29,37 +29,46 @@ class Static():
 class KDJ():
     def _avg(self, a):
         length = len(a)
-        return sum(a) / length
+        return sum(a)/length
     
     def _getMA(self, values, window):
         array = []
         x = window
-        while x < len(values):
+        while x <= len(values):
             curmb = self._avg(values[x-window:x])
-            array.append(curmb)
+            array.append(round(curmb,3))
             x += 1
         return array
     
     def _getRSV(self, arrays):
         rsv = []
-        times = []
         x = 9
-        while x < len(arrays):
-            high = max(map(lambda x: x[0], arrays[x-9:x]))
-            low = min(map(lambda x: x[1], arrays[x-9:x]))
-            close = arrays[x-1][2]
-            rsv.append( (close-low)/(high-low)*100 )
-            t = int(time.mktime(arrays[x-1][3].timetuple())) * 1000
-            times.append(t)
+        while x <= len(arrays):
+            high = max(map(lambda x: x['High'], arrays[x-9:x]))
+            low = min(map(lambda x: x['Low'], arrays[x-9:x]))
+            close = arrays[x-1]['Close']
+            rsv.append((close-low)/(high-low)*100)
+            t = arrays[x-1]['Date']
             x += 1
-        return times, rsv
+        return rsv
     
     def getKDJ(self, quote_data):
-        t, rsv = self._getRSV(quote_data)
-        k = self._getMA(rsv,3)
-        d = self._getMA(k,3)
-        j = map(lambda x: 3*x[0]-2*x[1], zip(k[3:], d))
-        return zip(t[2:], k), zip(t[5:], d), zip(t[5:], j)
+        if(len(quote_data) > 12):
+            rsv = self._getRSV(quote_data)
+            k = self._getMA(rsv,3)
+            d = self._getMA(k,3)
+            j = list(map(lambda x: round(3*x[0]-2*x[1],3), zip(k[2:], d)))
+            
+            for idx, data in enumerate(quote_data[0:12]):
+                data['KDJ_K'] = None
+                data['KDJ_D'] = None
+                data['KDJ_J'] = None
+            for idx, data in enumerate(quote_data[12:]):
+                data['KDJ_K'] = k[2:][idx]
+                data['KDJ_D'] = d[idx]
+                data['KDJ_J'] = j[idx]
+            
+        return quote_data
 
 def load_all_quote_symbol():
     print("load_all_quote_symbol start..." + "\n")
@@ -158,6 +167,7 @@ def load_quote_data(quote, start_date, end_date, is_retry, counter):
         rjson = r.json()
         try:
             quote_data = rjson['query']['results']['quote']
+            quote_data.reverse()
             quote['Data'] = quote_data
             if(not is_retry):
                 counter.append(1)          
@@ -212,12 +222,7 @@ def data_process(all_quotes):
     ## calculate KDJ
     for quote in all_quotes:
         if('Data' in quote):
-            for quote_data in quote['Data']:
-                print(quote_data)
-                res = kdj.getKDJ(quote_data)
-                print(res[0])
-                print(res[1])
-                print(res[2])
+            kdj.getKDJ(quote['Data'])
 
     print("data_process end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
 
@@ -246,7 +251,8 @@ def data_export(all_quotes, export_type):
                         line = []
                         for column in columns:
                             if(column.find('data.') > -1):
-                                line.append(quote_data[column[5:]])
+                                if(column[5:] in quote_data):
+                                    line.append(quote_data[column[5:]])
                             elif(column == 'Name'):
                                 line.append("'" + quote[column] + "'")
                             else:
@@ -265,6 +271,6 @@ if __name__ == '__main__':
     all_quotes = load_all_quote_symbol()
     print("total " + str(len(all_quotes)) + " quotes are loaded..." + "\n")
     ##load_all_quote_info(all_quotes)
-    load_all_quote_data(all_quotes[0:10], "2015-02-01", "2015-03-01")
-    data_process(all_quotes[0:10])
+    load_all_quote_data(all_quotes, "2015-01-01", "2015-03-01")
+    data_process(all_quotes)
     data_export(all_quotes, 'csv')
