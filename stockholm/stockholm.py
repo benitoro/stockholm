@@ -35,7 +35,11 @@ class KDJ():
         array = []
         x = window
         while x <= len(values):
-            curmb = self._avg(values[x-window:x])
+            curmb = 50
+            if(x-window == 0):
+                curmb = self._avg(values[x-window:x])
+            else:
+                curmb = (array[-1]*2+values[x-1])/3
             array.append(round(curmb,3))
             x += 1
         return array
@@ -66,7 +70,12 @@ class KDJ():
             for idx, data in enumerate(quote_data[12:]):
                 data['KDJ_K'] = k[2:][idx]
                 data['KDJ_D'] = d[idx]
-                data['KDJ_J'] = j[idx]
+                if(j[idx] > 100):
+                    data['KDJ_J'] = 100
+                elif(j[idx] < 0):
+                    data['KDJ_J'] = 0
+                else:
+                    data['KDJ_J'] = j[idx]
             
         return quote_data
 
