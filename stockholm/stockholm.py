@@ -214,19 +214,30 @@ def data_process(all_quotes):
     
     for quote in all_quotes:
         if('Data' in quote):
-            temp_data = []
-            for quote_data in quote['Data']:
-                if(quote_data['Volume'] != '000'):
-                    d = {}
-                    d['Open'] = float(quote_data['Open'])
-                    d['Adj_Close'] = float(quote_data['Adj_Close'])
-                    d['Close'] = float(quote_data['Close'])
-                    d['High'] = float(quote_data['High'])
-                    d['Low'] = float(quote_data['Low'])
-                    d['Volume'] = int(quote_data['Volume'])
-                    d['Date'] = quote_data['Date']
-                    temp_data.append(d)
-            quote['Data'] = temp_data
+            try:
+                temp_data = []
+                for quote_data in quote['Data']:
+                    if(quote_data['Volume'] != '000'):
+                        d = {}
+                        d['Open'] = float(quote_data['Open'])
+                        d['Adj_Close'] = float(quote_data['Adj_Close'])
+                        d['Close'] = float(quote_data['Close'])
+                        d['High'] = float(quote_data['High'])
+                        d['Low'] = float(quote_data['Low'])
+                        d['Volume'] = int(quote_data['Volume'])
+                        d['Date'] = quote_data['Date']
+                        temp_data.append(d)
+                quote['Data'] = temp_data
+            except KeyError as e:
+                print(e + "\n")
+                print(quote)
+
+    ## calculate Change
+    for quote in all_quotes:
+        if('Data' in quote):
+            for i, quote_data in enumerate(quote['Data']):
+                if(i > 0):
+                    quote_data['Change'] = round((quote_data['Close']-quote['Data'][i-1]['Close'])/quote['Data'][i-1]['Close'], 3)
 
     ## calculate KDJ
     for quote in all_quotes:
