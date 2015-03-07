@@ -13,6 +13,7 @@ class Static():
     all_quotes_url = 'http://money.finance.sina.com.cn/d/api/openapi_proxy.php'
     yql_url = 'http://query.yahooapis.com/v1/public/yql'
     export_folder = './export'
+    export_file_name = 'stockholm_export'
 
     def get_columns(self, quote):
         columns = []
@@ -26,10 +27,13 @@ class Static():
             columns.sort()
         return columns
 
+    def get_profit_rate(self, price1, price2):
+        return round((price2-price1)/price1, 5)
+
 class KDJ():
-    def _avg(self, a):
-        length = len(a)
-        return sum(a)/length
+    def _avg(self, array):
+        length = len(array)
+        return sum(array)/length
     
     def _getMA(self, values, window):
         array = []
@@ -209,6 +213,7 @@ def load_all_quote_data(all_quotes, start_date, end_date):
 
 def data_process(all_quotes):
     print("data_process start..." + "\n")
+    static = Static()
     kdj = KDJ()
     start = timeit.default_timer()
     
@@ -220,7 +225,7 @@ def data_process(all_quotes):
                     if(quote_data['Volume'] != '000'):
                         d = {}
                         d['Open'] = float(quote_data['Open'])
-                        d['Adj_Close'] = float(quote_data['Adj_Close'])
+                        ## d['Adj_Close'] = float(quote_data['Adj_Close'])
                         d['Close'] = float(quote_data['Close'])
                         d['High'] = float(quote_data['High'])
                         d['Low'] = float(quote_data['Low'])
@@ -229,20 +234,33 @@ def data_process(all_quotes):
                         temp_data.append(d)
                 quote['Data'] = temp_data
             except KeyError as e:
-                print(e + "\n")
+                print("Key Error")
+                print(e)
                 print(quote)
 
     ## calculate Change
     for quote in all_quotes:
         if('Data' in quote):
-            for i, quote_data in enumerate(quote['Data']):
-                if(i > 0):
-                    quote_data['Change'] = round((quote_data['Close']-quote['Data'][i-1]['Close'])/quote['Data'][i-1]['Close'], 3)
+            try:
+                for i, quote_data in enumerate(quote['Data']):
+                    if(i > 0):
+                        quote_data['Change'] = static.get_profit_rate(quote['Data'][i-1]['Close'], quote_data['Close'])
+                    else:
+                        quote_data['Change'] = None
+            except KeyError as e:
+                print("Key Error")
+                print(e)
+                print(quote)
 
     ## calculate KDJ
     for quote in all_quotes:
         if('Data' in quote):
-            kdj.getKDJ(quote['Data'])
+            try:
+                kdj.getKDJ(quote['Data'])
+            except KeyError as e:
+                print("Key Error")
+                print(e)
+                print(quote)
 
     print("data_process end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
 
@@ -250,18 +268,19 @@ def data_export(all_quotes, export_type):
     static = Static()
     start = timeit.default_timer()
     directory = static.export_folder
+    file_name = static.export_file_name
     if not os.path.exists(directory):
         os.makedirs(directory)
     
     if(export_type == 'json'):
         print("start export to JSON file...")
-        f = io.open(directory + '/stockholm_export.json', 'w', encoding='utf8')
+        f = io.open(directory + '/' + file_name + '.json', 'w', encoding='gbk')
         json.dump(all_quotes, f, ensure_ascii=False)
         
     elif(export_type == 'csv'):
         print("start export to CSV file...")
         columns = static.get_columns(all_quotes[0])
-        writer = csv.writer(open(directory + '/stockholm_export.csv', 'w', encoding='utf8'))
+        writer = csv.writer(open(directory + '/' + file_name + '.csv', 'w', encoding='gbk'))
         writer.writerow(columns)
 
         for quote in all_quotes:
@@ -273,8 +292,6 @@ def data_export(all_quotes, export_type):
                             if(column.find('data.') > -1):
                                 if(column[5:] in quote_data):
                                     line.append(quote_data[column[5:]])
-                            elif(column == 'Name'):
-                                line.append("'" + quote[column] + "'")
                             else:
                                 line.append(quote[column])
                         writer.writerow(line)
@@ -287,10 +304,99 @@ def data_export(all_quotes, export_type):
         
     print("export is complete... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
 
+def file_data_load():
+    print("file_data_load start..." + "\n")
+    static = Static()
+    start = timeit.default_timer()
+    directory = static.export_folder
+    file_name = static.export_file_name
+    
+    all_quotes_data = []
+    f = io.open(directory + '/' + file_name + '.json', 'r', encoding='gbk')
+    json_str = f.readline()
+    all_quotes_data = json.loads(json_str)
+    
+    print("file_data_load end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
+    return all_quotes_data
+
+def quote_pick(all_quotes, target_date):
+    print("quote_pick start..." + "\n")
+    static = Static()
+    start = timeit.default_timer()
+
+    results = []
+    for quote in all_quotes:
+        try:
+            target_idx = None
+            for idx, quote_data in enumerate(quote['Data']):
+                if(quote_data['Date'] == target_date):
+                    target_idx = idx
+            if(target_idx is None):
+                print(quote['Name'] + " data is not available at this date..." + "\n")
+                continue
+            
+            ## pick logic ##
+            if(quote['Data'][target_idx]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] is not None):
+                if(quote['Data'][target_idx-1]['KDJ_J'] == 0 and quote['Data'][target_idx]['KDJ_J'] >= 20):
+                    results.append(quote)
+            ## pick logic end ##
+            
+        except KeyError as e:
+            print("KeyError: " + quote['Name'] + " data is not available..." + "\n")
+            
+    print("quote_pick end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
+    return results
+
+def profit_test(selected_quotes, target_date):
+    print("rating start..." + "\n")
+    static = Static()
+    start = timeit.default_timer()
+    
+    results = []
+    for quote in selected_quotes:
+        target_idx = None
+        for idx, quote_data in enumerate(quote['Data']):
+            if(quote_data['Date'] == target_date):
+                target_idx = idx
+        if(target_idx is None or target_idx+1 >= len(quote['Data'])):
+            print(quote['Name'] + " data is not available for rating..." + "\n")
+            continue
+        test = {}
+        test['Name'] = quote['Name']
+        test['Symbol'] = quote['Symbol']
+
+        day_1_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+1]['Close'])
+        test['Day 1 Profit'] = day_1_profit
+        
+        if(target_idx+3 >= len(quote['Data'])):
+            print(quote['Name'] + " data is not available for 3 days testing..." + "\n")
+            continue
+        
+        day_3_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+3]['Close'])
+        test['Day 3 Profit'] = day_3_profit
+        
+        if(target_idx+10 >= len(quote['Data'])):
+            print(quote['Name'] + " data is not available for 10 days testing..." + "\n")
+            continue
+        
+        day_10_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+10]['Close'])
+        test['Day 10 Profit'] = day_10_profit
+        
+        results.append(test)
+        
+    print("rating end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
+    return results
+
 if __name__ == '__main__':
-    all_quotes = load_all_quote_symbol()
-    print("total " + str(len(all_quotes)) + " quotes are loaded..." + "\n")
-    ##load_all_quote_info(all_quotes)
-    load_all_quote_data(all_quotes, "2015-01-01", "2015-03-01")
-    data_process(all_quotes)
-    data_export(all_quotes, 'csv')
+##    all_quotes = load_all_quote_symbol()
+##    print("total " + str(len(all_quotes)) + " quotes are loaded..." + "\n")
+##    all_quotes = all_quotes
+##    ##load_all_quote_info(all_quotes)
+##    load_all_quote_data(all_quotes, "2015-01-01", "2015-03-01")
+##    data_process(all_quotes)
+##    data_export(all_quotes, 'json')
+##    data_export(all_quotes, 'csv')
+    all_quotes = file_data_load()
+    selected_quotes = quote_pick(all_quotes, '2015-02-11')
+    res = profit_test(selected_quotes, '2015-02-11')
+    print(res)
