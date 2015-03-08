@@ -15,6 +15,13 @@ class Static():
     export_folder = './export'
     export_file_name = 'stockholm_export'
 
+    index_array = ['000001.SS', '399001.SZ', '000300.SS']
+    sh000001 = {'Symbol': '000001.SS', 'Name': '上证指数'}
+    sz399001 = {'Symbol': '399001.SZ', 'Name': '深证成指'}
+    sh000300 = {'Symbol': '000300.SS', 'Name': '沪深300'}
+    ## sz399005 = {'Symbol': '399005.SZ', 'Name': '中小板指'}
+    ## sz399006 = {'Symbol': '399006.SZ', 'Name': '创业板指'}
+    
     def get_columns(self, quote):
         columns = []
         if(quote is not None):
@@ -89,6 +96,13 @@ def load_all_quote_symbol():
     start = timeit.default_timer()
 
     all_quotes = []
+    
+    all_quotes.append(static.sh000001)
+    all_quotes.append(static.sz399001)
+    all_quotes.append(static.sh000300)
+    all_quotes.append(static.sz399005)
+    all_quotes.append(static.sz399006)
+    
     try:
         count = 1
         while (count < 100):
@@ -151,7 +165,7 @@ def load_quote_info(quote, is_retry):
                 time.sleep(1)
                 load_quote_info(quote, True) ## retry once for network issue
         
-    print(quote)
+    ## print(quote)
     print("load_quote_info end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
     return quote
 
@@ -188,7 +202,7 @@ def load_quote_data(quote, start_date, end_date, is_retry, counter):
         except:
             print("Error: Failed to load stock data... " + quote['Symbol'] + "/" + quote['Name'] + "\n")
             if(not is_retry):
-                time.sleep(1)
+                time.sleep(2)
                 load_quote_data(quote, start_date, end_date, True, counter) ## retry once for network issue
     
         print("load_quote_data " + quote['Symbol'] + "/" + quote['Name'] + " end..." + "\n")
@@ -222,7 +236,7 @@ def data_process(all_quotes):
             try:
                 temp_data = []
                 for quote_data in quote['Data']:
-                    if(quote_data['Volume'] != '000'):
+                    if(quote_data['Volume'] != '000' or quote_data['Symbol'] in static.index_array):
                         d = {}
                         d['Open'] = float(quote_data['Open'])
                         ## d['Adj_Close'] = float(quote_data['Adj_Close'])
@@ -264,13 +278,18 @@ def data_process(all_quotes):
 
     print("data_process end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
 
-def data_export(all_quotes, export_type):
+def data_export(all_quotes, export_type, file_name):
     static = Static()
     start = timeit.default_timer()
     directory = static.export_folder
-    file_name = static.export_file_name
+    if(file_name is None):
+        file_name = static.export_file_name
     if not os.path.exists(directory):
         os.makedirs(directory)
+
+    if(all_quotes is None or len(all_quotes) == 0):
+        print("no data to export...")
+        return
     
     if(export_type == 'json'):
         print("start export to JSON file...")
@@ -325,8 +344,14 @@ def quote_pick(all_quotes, target_date):
     start = timeit.default_timer()
 
     results = []
+    data_issue_count = 0
+    
     for quote in all_quotes:
         try:
+            if(quote['Symbol'] in static.index_array):
+                results.append(quote)
+                continue
+            
             target_idx = None
             for idx, quote_data in enumerate(quote['Data']):
                 if(quote_data['Date'] == target_date):
@@ -336,67 +361,109 @@ def quote_pick(all_quotes, target_date):
                 continue
             
             ## pick logic ##
-            if(quote['Data'][target_idx]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] is not None):
-                if(quote['Data'][target_idx-1]['KDJ_J'] == 0 and quote['Data'][target_idx]['KDJ_J'] >= 20):
-                    results.append(quote)
+            if(quote['Data'][target_idx]['KDJ_J'] is not None):
+                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] <= 0):
+                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 0):
+                        if(quote['Data'][target_idx]['KDJ_J'] >= 0):
+                            results.append(quote)
             ## pick logic end ##
             
         except KeyError as e:
             print("KeyError: " + quote['Name'] + " data is not available..." + "\n")
+            data_issue_count+=1
             
     print("quote_pick end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
+    print(str(data_issue_count) + " quotes of data is not available...")
     return results
 
 def profit_test(selected_quotes, target_date):
-    print("rating start..." + "\n")
+    print("profit_test start..." + "\n")
     static = Static()
     start = timeit.default_timer()
     
     results = []
+    INDEX = None
+    INDEX_idx = 0
+
+    for quote in selected_quotes:
+        if(quote['Symbol'] == static.sh000300['Symbol']):
+            INDEX = quote
+            for idx, quote_data in enumerate(quote['Data']):
+                if(quote_data['Date'] == target_date):
+                    INDEX_idx = idx
+            break
+    
     for quote in selected_quotes:
         target_idx = None
+        
+        if(quote['Symbol'] in static.index_array):
+            continue
+        
         for idx, quote_data in enumerate(quote['Data']):
             if(quote_data['Date'] == target_date):
                 target_idx = idx
         if(target_idx is None or target_idx+1 >= len(quote['Data'])):
-            print(quote['Name'] + " data is not available for rating..." + "\n")
+            print(quote['Name'] + " data is not available for testing..." + "\n")
             continue
+        
         test = {}
         test['Name'] = quote['Name']
         test['Symbol'] = quote['Symbol']
+        test['KDJ_K'] = quote['Data'][target_idx]['KDJ_K']
+        test['KDJ_D'] = quote['Data'][target_idx]['KDJ_D']
+        test['KDJ_J'] = quote['Data'][target_idx]['KDJ_J']
+        test['Data'] = [{}]
 
         day_1_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+1]['Close'])
-        test['Day 1 Profit'] = day_1_profit
+        test['Data'][0]['Day 1 Profit'] = day_1_profit
+        day_1_INDEX_change = static.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+1]['Close'])
+        test['Data'][0]['Day 1 INDEX Change'] = day_1_INDEX_change
+        test['Data'][0]['Day 1 Differ'] = day_1_profit-day_1_INDEX_change
         
         if(target_idx+3 >= len(quote['Data'])):
             print(quote['Name'] + " data is not available for 3 days testing..." + "\n")
+            results.append(test)
             continue
         
         day_3_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+3]['Close'])
-        test['Day 3 Profit'] = day_3_profit
+        test['Data'][0]['Day 3 Profit'] = day_3_profit
+        day_3_INDEX_change = static.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+3]['Close'])
+        test['Data'][0]['Day 3 INDEX Change'] = day_3_INDEX_change
+        test['Data'][0]['Day 3 Differ'] = day_3_profit-day_3_INDEX_change
         
         if(target_idx+10 >= len(quote['Data'])):
             print(quote['Name'] + " data is not available for 10 days testing..." + "\n")
+            results.append(test)
             continue
         
-        day_10_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+10]['Close'])
-        test['Day 10 Profit'] = day_10_profit
+        day_9_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+9]['Close'])
+        test['Data'][0]['Day 9 Profit'] = day_9_profit
+        day_9_INDEX_change = static.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+9]['Close'])
+        test['Data'][0]['Day 9 INDEX Change'] = day_9_INDEX_change
+        test['Data'][0]['Day 9 Differ'] = day_9_profit-day_9_INDEX_change
         
         results.append(test)
         
-    print("rating end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
+    print("profit_test end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
     return results
 
-if __name__ == '__main__':
-##    all_quotes = load_all_quote_symbol()
-##    print("total " + str(len(all_quotes)) + " quotes are loaded..." + "\n")
-##    all_quotes = all_quotes
-##    ##load_all_quote_info(all_quotes)
-##    load_all_quote_data(all_quotes, "2015-01-01", "2015-03-01")
-##    data_process(all_quotes)
-##    data_export(all_quotes, 'json')
-##    data_export(all_quotes, 'csv')
+def data_load(start_date, end_date):
+    all_quotes = load_all_quote_symbol()
+    print("total " + str(len(all_quotes)) + " quotes are loaded..." + "\n")
+    all_quotes = all_quotes
+    ##load_all_quote_info(all_quotes)
+    load_all_quote_data(all_quotes, start_date, end_date)
+    data_process(all_quotes)
+    data_export(all_quotes, 'json', None)
+    data_export(all_quotes, 'csv', None)
+
+def data_test(target_date):
     all_quotes = file_data_load()
-    selected_quotes = quote_pick(all_quotes, '2015-02-11')
-    res = profit_test(selected_quotes, '2015-02-11')
-    print(res)
+    selected_quotes = quote_pick(all_quotes, target_date)
+    res = profit_test(selected_quotes, target_date)
+    data_export(res, 'csv', 'test_result')
+
+if __name__ == '__main__':
+    ## data_load("2014-12-08", "2015-03-06")
+    data_test("2015-01-05")
+
