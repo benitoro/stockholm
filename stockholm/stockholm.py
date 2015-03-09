@@ -362,9 +362,9 @@ def quote_pick(all_quotes, target_date):
             
             ## pick logic ##
             if(quote['Data'][target_idx]['KDJ_J'] is not None):
-                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] <= 0):
+                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] >= 10):
                     if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 0):
-                        if(quote['Data'][target_idx]['KDJ_J'] >= 0):
+                        if(quote['Data'][target_idx]['KDJ_J'] >= 10):
                             results.append(quote)
             ## pick logic end ##
             
@@ -465,5 +465,5 @@ def data_test(target_date):
 
 if __name__ == '__main__':
     ## data_load("2014-12-08", "2015-03-06")
-    data_test("2015-01-05")
+    data_test("2015-02-06")
 
