@@ -290,7 +290,6 @@ def data_export(all_quotes, export_type_array, file_name):
 
     if(all_quotes is None or len(all_quotes) == 0):
         print("no data to export...")
-        return
     
     if('json' in export_type_array):
         print("start export to JSON file...")
@@ -299,7 +298,9 @@ def data_export(all_quotes, export_type_array, file_name):
         
     if('csv' in export_type_array):
         print("start export to CSV file...")
-        columns = static.get_columns(all_quotes[0])
+        columns = []
+        if(all_quotes is not None and len(all_quotes) > 0):
+            columns = static.get_columns(all_quotes[0])
         writer = csv.writer(open(directory + '/' + file_name + '.csv', 'w', encoding='gbk'))
         writer.writerow(columns)
 
@@ -332,7 +333,7 @@ def file_data_load():
     file_name = static.export_file_name
     
     all_quotes_data = []
-    f = io.open(directory + '/' + file_name + '.json', 'r', encoding='gbk')
+    f = io.open(directory + '/' + file_name + '.json', 'r', encoding='utf-8')
     json_str = f.readline()
     all_quotes_data = json.loads(json_str)
     
@@ -348,7 +349,7 @@ def check_date(all_quotes, date):
                 if(quote_data['Date'] == date):
                     is_date_valid = True
     if not is_date_valid:
-        print("date not valid")
+        print(date + " is not valid...")
     return is_date_valid
 
 def quote_pick(all_quotes, target_date):
@@ -426,6 +427,7 @@ def profit_test(selected_quotes, target_date):
         test['KDJ_K'] = quote['Data'][target_idx]['KDJ_K']
         test['KDJ_D'] = quote['Data'][target_idx]['KDJ_D']
         test['KDJ_J'] = quote['Data'][target_idx]['KDJ_J']
+        test['Close'] = quote['Data'][target_idx]['Close']
         test['Data'] = [{}]
         
         if(target_idx+1 >= len(quote['Data'])):
@@ -481,11 +483,12 @@ def data_test(target_date, export_type_array):
         date = (target_date_time - datetime.timedelta(days=i)).strftime("%Y-%m-%d")
         is_date_valid = check_date(all_quotes, date)
         if is_date_valid:
+            print(is_date_valid)
             selected_quotes = quote_pick(all_quotes, date)
             res = profit_test(selected_quotes, date)
             data_export(res, export_type_array, 'result_' + date)
 
 if __name__ == '__main__':
-    data_load("2014-12-11", "2015-03-11")
-    data_test("2015-03-11", ["csv"])
+    ## data_load("2014-12-11", "2015-03-10")
+    data_test("2015-03-10", ["csv"])
 
