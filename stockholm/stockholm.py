@@ -1,5 +1,6 @@
 import requests
 import json
+import datetime
 import timeit
 import time
 import io
@@ -100,8 +101,8 @@ def load_all_quote_symbol():
     all_quotes.append(static.sh000001)
     all_quotes.append(static.sz399001)
     all_quotes.append(static.sh000300)
-    all_quotes.append(static.sz399005)
-    all_quotes.append(static.sz399006)
+    ## all_quotes.append(static.sz399005)
+    ## all_quotes.append(static.sz399006)
     
     try:
         count = 1
@@ -278,7 +279,7 @@ def data_process(all_quotes):
 
     print("data_process end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
 
-def data_export(all_quotes, export_type, file_name):
+def data_export(all_quotes, export_type_array, file_name):
     static = Static()
     start = timeit.default_timer()
     directory = static.export_folder
@@ -291,12 +292,12 @@ def data_export(all_quotes, export_type, file_name):
         print("no data to export...")
         return
     
-    if(export_type == 'json'):
+    if('json' in export_type_array):
         print("start export to JSON file...")
-        f = io.open(directory + '/' + file_name + '.json', 'w', encoding='gbk')
+        f = io.open(directory + '/' + file_name + '.json', 'w', encoding='utf-8')
         json.dump(all_quotes, f, ensure_ascii=False)
         
-    elif(export_type == 'csv'):
+    if('csv' in export_type_array):
         print("start export to CSV file...")
         columns = static.get_columns(all_quotes[0])
         writer = csv.writer(open(directory + '/' + file_name + '.csv', 'w', encoding='gbk'))
@@ -318,7 +319,7 @@ def data_export(all_quotes, export_type, file_name):
                         print(e)
                         print("write csv error: " + quote)
         
-    elif(export_type == 'mongo'):
+    if('mongo' in export_type_array):
         print("start export to MongoDB...")
         
     print("export is complete... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
@@ -337,6 +338,18 @@ def file_data_load():
     
     print("file_data_load end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
     return all_quotes_data
+
+def check_date(all_quotes, date):
+    static = Static()
+    is_date_valid = False
+    for quote in all_quotes:
+        if(quote['Symbol'] in static.index_array):
+            for quote_data in quote['Data']:
+                if(quote_data['Date'] == date):
+                    is_date_valid = True
+    if not is_date_valid:
+        print("date not valid")
+    return is_date_valid
 
 def quote_pick(all_quotes, target_date):
     print("quote_pick start..." + "\n")
@@ -357,19 +370,20 @@ def quote_pick(all_quotes, target_date):
                 if(quote_data['Date'] == target_date):
                     target_idx = idx
             if(target_idx is None):
-                print(quote['Name'] + " data is not available at this date..." + "\n")
+                ## print(quote['Name'] + " data is not available at this date..." + "\n")
+                data_issue_count+=1
                 continue
             
             ## pick logic ##
             if(quote['Data'][target_idx]['KDJ_J'] is not None):
-                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] >= 10):
-                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 0):
-                        if(quote['Data'][target_idx]['KDJ_J'] >= 10):
+                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] >= 15):
+                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 5):
+                        if(quote['Data'][target_idx]['KDJ_J'] >= 15):
                             results.append(quote)
             ## pick logic end ##
             
         except KeyError as e:
-            print("KeyError: " + quote['Name'] + " data is not available..." + "\n")
+            ## print("KeyError: " + quote['Name'] + " data is not available..." + "\n")
             data_issue_count+=1
             
     print("quote_pick end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
@@ -402,7 +416,7 @@ def profit_test(selected_quotes, target_date):
         for idx, quote_data in enumerate(quote['Data']):
             if(quote_data['Date'] == target_date):
                 target_idx = idx
-        if(target_idx is None or target_idx+1 >= len(quote['Data'])):
+        if(target_idx is None):
             print(quote['Name'] + " data is not available for testing..." + "\n")
             continue
         
@@ -413,6 +427,10 @@ def profit_test(selected_quotes, target_date):
         test['KDJ_D'] = quote['Data'][target_idx]['KDJ_D']
         test['KDJ_J'] = quote['Data'][target_idx]['KDJ_J']
         test['Data'] = [{}]
+        
+        if(target_idx+1 >= len(quote['Data'])):
+            print(quote['Name'] + " data is not available for 1 day testing..." + "\n")
+            continue
 
         day_1_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+1]['Close'])
         test['Data'][0]['Day 1 Profit'] = day_1_profit
@@ -454,16 +472,20 @@ def data_load(start_date, end_date):
     ##load_all_quote_info(all_quotes)
     load_all_quote_data(all_quotes, start_date, end_date)
     data_process(all_quotes)
-    data_export(all_quotes, 'json', None)
-    data_export(all_quotes, 'csv', None)
+    data_export(all_quotes, ["json", "csv"], None)
 
-def data_test(target_date):
+def data_test(target_date, export_type_array):
     all_quotes = file_data_load()
-    selected_quotes = quote_pick(all_quotes, target_date)
-    res = profit_test(selected_quotes, target_date)
-    data_export(res, 'csv', 'test_result')
+    target_date_time = datetime.datetime.strptime(target_date, "%Y-%m-%d")
+    for i in range(20):
+        date = (target_date_time - datetime.timedelta(days=i)).strftime("%Y-%m-%d")
+        is_date_valid = check_date(all_quotes, date)
+        if is_date_valid:
+            selected_quotes = quote_pick(all_quotes, date)
+            res = profit_test(selected_quotes, date)
+            data_export(res, export_type_array, 'result_' + date)
 
 if __name__ == '__main__':
-    ## data_load("2014-12-08", "2015-03-06")
-    data_test("2015-02-06")
+    data_load("2014-12-11", "2015-03-11")
+    data_test("2015-03-11", ["csv"])
 
