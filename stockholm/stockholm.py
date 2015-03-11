@@ -377,9 +377,9 @@ def quote_pick(all_quotes, target_date):
             
             ## pick logic ##
             if(quote['Data'][target_idx]['KDJ_J'] is not None):
-                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] >= 15):
+                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] >= 20):
                     if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 5):
-                        if(quote['Data'][target_idx]['KDJ_J'] >= 15):
+                        if( 10 <= quote['Data'][target_idx]['KDJ_J'] <= 30):
                             results.append(quote)
             ## pick logic end ##
             
@@ -432,13 +432,14 @@ def profit_test(selected_quotes, target_date):
         
         if(target_idx+1 >= len(quote['Data'])):
             print(quote['Name'] + " data is not available for 1 day testing..." + "\n")
+            results.append(test)
             continue
 
         day_1_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+1]['Close'])
-        test['Data'][0]['Day 1 Profit'] = day_1_profit
+        test['Data'][0]['Day_1_Profit'] = day_1_profit
         day_1_INDEX_change = static.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+1]['Close'])
-        test['Data'][0]['Day 1 INDEX Change'] = day_1_INDEX_change
-        test['Data'][0]['Day 1 Differ'] = day_1_profit-day_1_INDEX_change
+        test['Data'][0]['Day_1_INDEX_Change'] = day_1_INDEX_change
+        test['Data'][0]['Day_1_Differ'] = day_1_profit-day_1_INDEX_change
         
         if(target_idx+3 >= len(quote['Data'])):
             print(quote['Name'] + " data is not available for 3 days testing..." + "\n")
@@ -446,10 +447,10 @@ def profit_test(selected_quotes, target_date):
             continue
         
         day_3_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+3]['Close'])
-        test['Data'][0]['Day 3 Profit'] = day_3_profit
+        test['Data'][0]['Day_3_Profit'] = day_3_profit
         day_3_INDEX_change = static.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+3]['Close'])
-        test['Data'][0]['Day 3 INDEX Change'] = day_3_INDEX_change
-        test['Data'][0]['Day 3 Differ'] = day_3_profit-day_3_INDEX_change
+        test['Data'][0]['Day_3_INDEX_Change'] = day_3_INDEX_change
+        test['Data'][0]['Day_3_Differ'] = day_3_profit-day_3_INDEX_change
         
         if(target_idx+10 >= len(quote['Data'])):
             print(quote['Name'] + " data is not available for 10 days testing..." + "\n")
@@ -457,10 +458,10 @@ def profit_test(selected_quotes, target_date):
             continue
         
         day_9_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+9]['Close'])
-        test['Data'][0]['Day 9 Profit'] = day_9_profit
+        test['Data'][0]['Day_9_Profit'] = day_9_profit
         day_9_INDEX_change = static.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+9]['Close'])
-        test['Data'][0]['Day 9 INDEX Change'] = day_9_INDEX_change
-        test['Data'][0]['Day 9 Differ'] = day_9_profit-day_9_INDEX_change
+        test['Data'][0]['Day_9_INDEX_Change'] = day_9_INDEX_change
+        test['Data'][0]['Day_9_Differ'] = day_9_profit-day_9_INDEX_change
         
         results.append(test)
         
@@ -476,10 +477,10 @@ def data_load(start_date, end_date):
     data_process(all_quotes)
     data_export(all_quotes, ["json", "csv"], None)
 
-def data_test(target_date, export_type_array):
+def data_test(target_date, export_type_array, test_range):
     all_quotes = file_data_load()
     target_date_time = datetime.datetime.strptime(target_date, "%Y-%m-%d")
-    for i in range(20):
+    for i in range(test_range):
         date = (target_date_time - datetime.timedelta(days=i)).strftime("%Y-%m-%d")
         is_date_valid = check_date(all_quotes, date)
         if is_date_valid:
@@ -489,6 +490,6 @@ def data_test(target_date, export_type_array):
             data_export(res, export_type_array, 'result_' + date)
 
 if __name__ == '__main__':
-    ## data_load("2014-12-11", "2015-03-10")
-    data_test("2015-03-10", ["csv"])
+    ## data_load("2014-12-12", "2015-03-11")
+    data_test("2015-03-11", ["json"], 20)
 
