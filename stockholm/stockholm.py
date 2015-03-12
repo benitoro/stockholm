@@ -13,7 +13,8 @@ from functools import partial
 class Static():
     all_quotes_url = 'http://money.finance.sina.com.cn/d/api/openapi_proxy.php'
     yql_url = 'http://query.yahooapis.com/v1/public/yql'
-    export_folder = './export'
+    export_folder = os.path.expanduser('~') + '/temp/export'
+    print(export_folder)
     export_file_name = 'stockholm_export'
 
     index_array = ['000001.SS', '399001.SZ', '000300.SS']
@@ -378,7 +379,7 @@ def quote_pick(all_quotes, target_date):
             ## pick logic ##
             if(quote['Data'][target_idx]['KDJ_J'] is not None):
                 if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] >= 20):
-                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 5):
+                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 10):
                         if( 10 <= quote['Data'][target_idx]['KDJ_J'] <= 30):
                             results.append(quote)
             ## pick logic end ##
@@ -490,6 +491,6 @@ def data_test(target_date, export_type_array, test_range):
             data_export(res, export_type_array, 'result_' + date)
 
 if __name__ == '__main__':
-    ## data_load("2014-12-12", "2015-03-11")
-    data_test("2015-03-11", ["json"], 20)
+    ## data_load("2014-12-12", "2015-03-12")
+    data_test("2015-03-12", ["json"], 20)
 
