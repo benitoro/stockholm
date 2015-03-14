@@ -37,7 +37,10 @@ class Static():
         return columns
 
     def get_profit_rate(self, price1, price2):
-        return round((price2-price1)/price1, 5)
+        if(price1 == 0):
+            return None
+        else:
+            return round((price2-price1)/price1, 5)
 
 class KDJ():
     def _avg(self, array):
@@ -261,8 +264,10 @@ def data_process(all_quotes):
                 for i, quote_data in enumerate(quote['Data']):
                     if(i > 0):
                         quote_data['Change'] = static.get_profit_rate(quote['Data'][i-1]['Close'], quote_data['Close'])
+                        quote_data['Vol_Change'] = static.get_profit_rate(quote['Data'][i-1]['Volume'], quote_data['Volume'])                        
                     else:
                         quote_data['Change'] = None
+                        quote_data['Vol_Change'] = None
             except KeyError as e:
                 print("Key Error")
                 print(e)
@@ -377,12 +382,46 @@ def quote_pick(all_quotes, target_date):
                 continue
             
             ## pick logic ##
-            if(quote['Data'][target_idx]['KDJ_J'] is not None):
-                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] >= 20):
-                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 10):
-                        if( 10 <= quote['Data'][target_idx]['KDJ_J'] <= 30):
-                            results.append(quote)
+            kdj_j_day_0 = quote['Data'][target_idx]['KDJ_J']
+            kdj_j_day_m_1 = quote['Data'][target_idx-1]['KDJ_J']
+            kdj_j_day_m_2 = quote['Data'][target_idx-2]['KDJ_J']
+            kdj_j_day_m_3 = quote['Data'][target_idx-3]['KDJ_J']
+            
+            if(kdj_j_day_0 is not None):
+##                if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] == 0):
+##                    if(quote['Data'][target_idx]['KDJ_J'] == 0 and quote['Data'][target_idx]['Change'] > 0):
+##                        results.append(quote)
+
+##                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] == 0):
+##                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] == 0):
+##                        if(10 <= quote['Data'][target_idx]['KDJ_J'] <= 30):
+##                            if(quote['Data'][target_idx]['Change'] <= 0.04):
+##                                results.append(quote)
+                
+##                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] >= 10):
+##                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 10):
+##                        if(quote['Data'][target_idx]['KDJ_J'] >= 10):
+##                            if(-0.3 <= quote['Data'][target_idx]['Vol_Change'] <= 1):
+##                                results.append(quote)
+
+##                if(quote['Data'][target_idx-3]['KDJ_J'] is not None and quote['Data'][target_idx-3]['KDJ_J'] >= 10):
+##                    if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] <= 10):
+##                        if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] >= 10):
+##                            ## if(-0.3 <= quote['Data'][target_idx-1]['Vol_Change'] <= 1):
+##                            results.append(quote)
+
+                if(kdj_j_day_m_3 is not None):
+                    if(kdj_j_day_m_2 is not None and kdj_j_day_m_3 - kdj_j_day_m_2 >= 10):
+                        if(kdj_j_day_m_1 is not None and kdj_j_day_m_2 - kdj_j_day_m_1 >= 20):
+                            if(kdj_j_day_0 - kdj_j_day_m_1 >= 10 and kdj_j_day_0 < kdj_j_day_m_2):
+                                if(kdj_j_day_0 < 50):
+                                    ## if(-0.3 <= quote['Data'][target_idx-1]['Vol_Change'] <= 1):
+                                    results.append(quote)
+
+
+                            
             ## pick logic end ##
+                            
             
         except KeyError as e:
             ## print("KeyError: " + quote['Name'] + " data is not available..." + "\n")
@@ -429,6 +468,8 @@ def profit_test(selected_quotes, target_date):
         test['KDJ_D'] = quote['Data'][target_idx]['KDJ_D']
         test['KDJ_J'] = quote['Data'][target_idx]['KDJ_J']
         test['Close'] = quote['Data'][target_idx]['Close']
+        test['Change'] = quote['Data'][target_idx]['Change']
+        test['Vol_Change'] = quote['Data'][target_idx]['Vol_Change']
         test['Data'] = [{}]
         
         if(target_idx+1 >= len(quote['Data'])):
@@ -452,9 +493,20 @@ def profit_test(selected_quotes, target_date):
         day_3_INDEX_change = static.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+3]['Close'])
         test['Data'][0]['Day_3_INDEX_Change'] = day_3_INDEX_change
         test['Data'][0]['Day_3_Differ'] = day_3_profit-day_3_INDEX_change
+
+        if(target_idx+5 >= len(quote['Data'])):
+            print(quote['Name'] + " data is not available for 5 days testing..." + "\n")
+            results.append(test)
+            continue
         
-        if(target_idx+10 >= len(quote['Data'])):
-            print(quote['Name'] + " data is not available for 10 days testing..." + "\n")
+        day_5_profit = static.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+5]['Close'])
+        test['Data'][0]['Day_5_Profit'] = day_5_profit
+        day_5_INDEX_change = static.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+5]['Close'])
+        test['Data'][0]['Day_5_INDEX_Change'] = day_5_INDEX_change
+        test['Data'][0]['Day_5_Differ'] = day_5_profit-day_5_INDEX_change
+        
+        if(target_idx+9 >= len(quote['Data'])):
+            print(quote['Name'] + " data is not available for 9 days testing..." + "\n")
             results.append(test)
             continue
         
@@ -491,6 +543,6 @@ def data_test(target_date, export_type_array, test_range):
             data_export(res, export_type_array, 'result_' + date)
 
 if __name__ == '__main__':
-    ## data_load("2014-12-12", "2015-03-12")
-    data_test("2015-03-12", ["json"], 20)
+    data_load("2014-12-13", "2015-03-13")
+    data_test("2015-03-13", ["json"], 45)
 
