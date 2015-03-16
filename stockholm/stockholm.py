@@ -386,39 +386,35 @@ def quote_pick(all_quotes, target_date):
             kdj_j_day_m_1 = quote['Data'][target_idx-1]['KDJ_J']
             kdj_j_day_m_2 = quote['Data'][target_idx-2]['KDJ_J']
             kdj_j_day_m_3 = quote['Data'][target_idx-3]['KDJ_J']
-            
+            change_day_0 = quote['Data'][target_idx]['Change']
+            change_day_m_1 = quote['Data'][target_idx-1]['Change']
+            change_day_m_2 = quote['Data'][target_idx-2]['Change']
+            change_day_m_3 = quote['Data'][target_idx-3]['Change']
+            vol_change_day_0 = quote['Data'][target_idx]['Change']
+            vol_change_day_m_1 = quote['Data'][target_idx-1]['Vol_Change']
+            vol_change_day_m_2 = quote['Data'][target_idx-2]['Vol_Change']
+            vol_change_day_m_3 = quote['Data'][target_idx-3]['Vol_Change']
+                        
             if(kdj_j_day_0 is not None):
-##                if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] == 0):
-##                    if(quote['Data'][target_idx]['KDJ_J'] == 0 and quote['Data'][target_idx]['Change'] > 0):
-##                        results.append(quote)
+                if(kdj_j_day_m_2 is not None):
+                    if(kdj_j_day_m_1 is not None and kdj_j_day_m_2 - kdj_j_day_m_1 >= 20):
+                        if(kdj_j_day_0 > kdj_j_day_m_2):
+                            if(kdj_j_day_m_1 < 30):
+                                results.append(quote)
+                                continue
 
-##                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] == 0):
-##                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] == 0):
-##                        if(10 <= quote['Data'][target_idx]['KDJ_J'] <= 30):
-##                            if(quote['Data'][target_idx]['Change'] <= 0.04):
-##                                results.append(quote)
-                
-##                if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] >= 10):
-##                    if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] <= 10):
-##                        if(quote['Data'][target_idx]['KDJ_J'] >= 10):
-##                            if(-0.3 <= quote['Data'][target_idx]['Vol_Change'] <= 1):
-##                                results.append(quote)
+                if(kdj_j_day_m_2 is not None and kdj_j_day_m_2 < 20):
+                    if(kdj_j_day_m_1 is not None and kdj_j_day_m_1 < 20):
+                        if(kdj_j_day_0 - kdj_j_day_m_1 >= 40):
+                            if(quote['Data'][target_idx]['Vol_Change'] >= 1.5):
+                                results.append(quote)
+                                continue
 
-##                if(quote['Data'][target_idx-3]['KDJ_J'] is not None and quote['Data'][target_idx-3]['KDJ_J'] >= 10):
-##                    if(quote['Data'][target_idx-2]['KDJ_J'] is not None and quote['Data'][target_idx-2]['KDJ_J'] <= 10):
-##                        if(quote['Data'][target_idx-1]['KDJ_J'] is not None and quote['Data'][target_idx-1]['KDJ_J'] >= 10):
-##                            ## if(-0.3 <= quote['Data'][target_idx-1]['Vol_Change'] <= 1):
-##                            results.append(quote)
-
-                if(kdj_j_day_m_3 is not None):
-                    if(kdj_j_day_m_2 is not None and kdj_j_day_m_3 - kdj_j_day_m_2 >= 10):
-                        if(kdj_j_day_m_1 is not None and kdj_j_day_m_2 - kdj_j_day_m_1 >= 20):
-                            if(kdj_j_day_0 - kdj_j_day_m_1 >= 10 and kdj_j_day_0 < kdj_j_day_m_2):
-                                if(kdj_j_day_0 < 50):
-                                    ## if(-0.3 <= quote['Data'][target_idx-1]['Vol_Change'] <= 1):
-                                    results.append(quote)
-
-
+                if(kdj_j_day_m_2 is not None and kdj_j_day_m_2 == 0):
+                    if(kdj_j_day_m_1 is not None and kdj_j_day_m_1 == 0):
+                        if(kdj_j_day_0 >= 5):
+                            results.append(quote)
+                            continue
                             
             ## pick logic end ##
                             
@@ -543,6 +539,6 @@ def data_test(target_date, export_type_array, test_range):
             data_export(res, export_type_array, 'result_' + date)
 
 if __name__ == '__main__':
-    data_load("2014-12-13", "2015-03-13")
-    data_test("2015-03-13", ["json"], 45)
+    data_load("2014-12-16", "2015-03-16")
+    data_test("2015-03-16", ["json"], 60)
 
