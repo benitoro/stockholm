@@ -42,6 +42,15 @@ class Static():
         else:
             return round((price2-price1)/price1, 5)
 
+    def get_MA(self, number_array):
+        total = 0
+        n = 0
+        for num in number_array:
+            if num is not None:
+                n += 1
+                total += num
+        return round(total/n, 3)
+
 class KDJ():
     def _avg(self, array):
         length = len(array)
@@ -257,10 +266,11 @@ def data_process(all_quotes):
                 print(e)
                 print(quote)
 
-    ## calculate Change
+    ## calculate Change / 10 Day MA
     for quote in all_quotes:
         if('Data' in quote):
             try:
+                last_10_array = []
                 for i, quote_data in enumerate(quote['Data']):
                     if(i > 0):
                         quote_data['Change'] = static.get_profit_rate(quote['Data'][i-1]['Close'], quote_data['Close'])
@@ -268,6 +278,16 @@ def data_process(all_quotes):
                     else:
                         quote_data['Change'] = None
                         quote_data['Vol_Change'] = None
+                        
+                for i, quote_data in enumerate(quote['Data']):
+                    last_10_array.append(quote_data['Close'])
+                    if(i < 9):
+                        quote_data['MA_10'] = None
+                        continue
+                    if(len(last_10_array) == 10):
+                        last_10_array.pop()
+                    quote_data['MA_10'] = static.get_MA(last_10_array)
+                    
             except KeyError as e:
                 print("Key Error")
                 print(e)
@@ -396,25 +416,25 @@ def quote_pick(all_quotes, target_date):
             vol_change_day_m_3 = quote['Data'][target_idx-3]['Vol_Change']
                         
             if(kdj_j_day_0 is not None):
-                if(kdj_j_day_m_2 is not None):
-                    if(kdj_j_day_m_1 is not None and kdj_j_day_m_2 - kdj_j_day_m_1 >= 20):
-                        if(kdj_j_day_0 > kdj_j_day_m_2):
-                            if(kdj_j_day_m_1 < 30):
-                                results.append(quote)
-                                continue
+##                if(kdj_j_day_m_2 is not None):
+##                    if(kdj_j_day_m_1 is not None and kdj_j_day_m_2 - kdj_j_day_m_1 >= 20):
+##                        if(kdj_j_day_0 > kdj_j_day_m_2):
+##                            if(kdj_j_day_m_1 < 30):
+##                                results.append(quote)
+##                                continue
 
                 if(kdj_j_day_m_2 is not None and kdj_j_day_m_2 < 20):
                     if(kdj_j_day_m_1 is not None and kdj_j_day_m_1 < 20):
                         if(kdj_j_day_0 - kdj_j_day_m_1 >= 40):
-                            if(quote['Data'][target_idx]['Vol_Change'] >= 1.5):
+                            if(quote['Data'][target_idx]['Vol_Change'] >= 1):
                                 results.append(quote)
                                 continue
 
-                if(kdj_j_day_m_2 is not None and kdj_j_day_m_2 == 0):
-                    if(kdj_j_day_m_1 is not None and kdj_j_day_m_1 == 0):
-                        if(kdj_j_day_0 >= 5):
-                            results.append(quote)
-                            continue
+##                if(kdj_j_day_m_2 is not None and kdj_j_day_m_2 == 0):
+##                    if(kdj_j_day_m_1 is not None and kdj_j_day_m_1 == 0):
+##                        if(kdj_j_day_0 >= 5):
+##                            results.append(quote)
+##                            continue
                             
             ## pick logic end ##
                             
@@ -539,6 +559,6 @@ def data_test(target_date, export_type_array, test_range):
             data_export(res, export_type_array, 'result_' + date)
 
 if __name__ == '__main__':
-    data_load("2014-12-16", "2015-03-16")
-    data_test("2015-03-16", ["json"], 60)
+    data_load("2014-12-17", "2015-03-17")
+    data_test("2015-03-17", ["json"], 60)
 
