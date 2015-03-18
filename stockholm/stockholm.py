@@ -13,7 +13,7 @@ from functools import partial
 class Static():
     all_quotes_url = 'http://money.finance.sina.com.cn/d/api/openapi_proxy.php'
     yql_url = 'http://query.yahooapis.com/v1/public/yql'
-    export_folder = os.path.expanduser('~') + '/temp/export'
+    export_folder = os.path.expanduser('~') + '/tmp/export'
     print(export_folder)
     export_file_name = 'stockholm_export'
 
@@ -46,7 +46,7 @@ class Static():
         total = 0
         n = 0
         for num in number_array:
-            if num is not None:
+            if num is not None and num != 0:
                 n += 1
                 total += num
         return round(total/n, 3)
@@ -416,28 +416,15 @@ def quote_pick(all_quotes, target_date):
             vol_change_day_m_3 = quote['Data'][target_idx-3]['Vol_Change']
                         
             if(kdj_j_day_0 is not None):
-##                if(kdj_j_day_m_2 is not None):
-##                    if(kdj_j_day_m_1 is not None and kdj_j_day_m_2 - kdj_j_day_m_1 >= 20):
-##                        if(kdj_j_day_0 > kdj_j_day_m_2):
-##                            if(kdj_j_day_m_1 < 30):
-##                                results.append(quote)
-##                                continue
-
                 if(kdj_j_day_m_2 is not None and kdj_j_day_m_2 < 20):
                     if(kdj_j_day_m_1 is not None and kdj_j_day_m_1 < 20):
                         if(kdj_j_day_0 - kdj_j_day_m_1 >= 40):
                             if(quote['Data'][target_idx]['Vol_Change'] >= 1):
+                                ## if(quote['Data'][target_idx-1]['MA_10']*1.1 > quote['Data'][target_idx-1]['Close']):
                                 results.append(quote)
                                 continue
-
-##                if(kdj_j_day_m_2 is not None and kdj_j_day_m_2 == 0):
-##                    if(kdj_j_day_m_1 is not None and kdj_j_day_m_1 == 0):
-##                        if(kdj_j_day_0 >= 5):
-##                            results.append(quote)
-##                            continue
-                            
+                                
             ## pick logic end ##
-                            
             
         except KeyError as e:
             ## print("KeyError: " + quote['Name'] + " data is not available..." + "\n")
@@ -486,6 +473,7 @@ def profit_test(selected_quotes, target_date):
         test['Close'] = quote['Data'][target_idx]['Close']
         test['Change'] = quote['Data'][target_idx]['Change']
         test['Vol_Change'] = quote['Data'][target_idx]['Vol_Change']
+        test['MA_10'] = quote['Data'][target_idx]['MA_10']
         test['Data'] = [{}]
         
         if(target_idx+1 >= len(quote['Data'])):
@@ -559,6 +547,6 @@ def data_test(target_date, export_type_array, test_range):
             data_export(res, export_type_array, 'result_' + date)
 
 if __name__ == '__main__':
-    data_load("2014-12-17", "2015-03-17")
-    data_test("2015-03-17", ["json"], 60)
+    data_load("2014-12-18", "2015-03-18")
+    data_test("2015-03-18", ["json"], 60)
 
