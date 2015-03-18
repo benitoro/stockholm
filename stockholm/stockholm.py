@@ -285,7 +285,7 @@ def data_process(all_quotes):
                         quote_data['MA_10'] = None
                         continue
                     if(len(last_10_array) == 10):
-                        last_10_array.pop()
+                        last_10_array.pop(0)
                     quote_data['MA_10'] = static.get_MA(last_10_array)
                     
             except KeyError as e:
