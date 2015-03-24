@@ -9,13 +9,14 @@ def get_date_str(offset):
 
 _default = dict(
     reload_data = 'Y',
-    gen_portfolio = 'Y',
+    gen_portfolio = 'N',
     output_type = 'json',
-    test_date_range = 60,
+    test_date_range = 50,
     start_date = get_date_str(-100),
     end_date = get_date_str(None),
     target_date = get_date_str(None),
-    store_path = 'USER_HOME/tmp/stockholm_export'
+    store_path = 'USER_HOME/tmp/stockholm_export',
+    thread = 10
     )
 
 parser = argparse.ArgumentParser(description='A stock crawler and portfolio testing framework.') 
@@ -35,6 +36,8 @@ parser.add_argument('--enddate', type=str, default=_default['end_date'], dest='e
 parser.add_argument('--targetdate', type=str, default=_default['target_date'], dest='target_date', help='Portfolio generating target date, Default: %s' % _default['target_date'])
 
 parser.add_argument('--storepath', type=str, default=_default['store_path'], dest='store_path', help='Data file store path, Default: %s' % _default['store_path'])
+
+parser.add_argument('--thread', type=int, default=_default['thread'], dest='thread', help='Thread number, Default: %s' % _default['thread'])
 
 ## parser.add_argument('--enddate', type=str, required=True, default=_default['end_date'], dest='end_date', help='Data loading end date, Default: %s' % _default['end_date'])
 
