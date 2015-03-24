@@ -28,6 +28,8 @@ class Stockholm(object):
         self.end_date = args.end_date
         ## portfolio generating target date
         self.target_date = args.target_date
+        ## thread number
+        self.thread = args.thread
         
         ## data file store path
         if(args.store_path == 'USER_HOME/tmp/stockholm_export'):
@@ -256,7 +258,7 @@ class Stockholm(object):
 
         counter = []
         mapfunc = partial(self.load_quote_data, start_date=start_date, end_date=end_date, is_retry=False, counter=counter)
-        pool = ThreadPool(9)
+        pool = ThreadPool(self.thread)
         pool.map(mapfunc, all_quotes) ## multi-threads executing
         pool.close() 
         pool.join()
@@ -441,6 +443,13 @@ class Stockholm(object):
                 vol_change_day_m_3 = quote['Data'][target_idx-3]['Vol_Change']
                             
                 if(kdj_j_day_0 is not None):
+                    if(kdj_j_day_m_3 is not None):
+                        if(kdj_j_day_m_2 is not None and kdj_j_day_m_3 < kdj_j_day_m_2):
+                            if(kdj_j_day_m_1 is not None and 50 < kdj_j_day_m_1 < 80 and kdj_j_day_m_2 < kdj_j_day_m_1):
+                                if(kdj_j_day_0 < kdj_j_day_m_1):
+                                    results.append(quote)
+                                    continue
+                    
                     if(kdj_j_day_m_2 is not None and kdj_j_day_m_2 < 20):
                         if(kdj_j_day_m_1 is not None and kdj_j_day_m_1 < 20):
                             if(kdj_j_day_0 - kdj_j_day_m_1 >= 40):
