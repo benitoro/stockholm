@@ -21,11 +21,11 @@ _default = dict(
 
 parser = argparse.ArgumentParser(description='A stock crawler and portfolio testing framework.') 
 
-parser.add_argument('--reload', type=str, default=_default['reload_data'], dest='reload_data', help='Reload the stock data or not, Default: %s' % _default['reload_data'])
+parser.add_argument('--reload', type=str, default=_default['reload_data'], dest='reload_data', help='Reload the stock data or not (Y/N), Default: %s' % _default['reload_data'])
 
-parser.add_argument('--portfolio', type=str, default=_default['gen_portfolio'], dest='gen_portfolio', help='Generate the portfolio or not, Default: %s' % _default['gen_portfolio'])
+parser.add_argument('--portfolio', type=str, default=_default['gen_portfolio'], dest='gen_portfolio', help='Generate the portfolio or not (Y/N), Default: %s' % _default['gen_portfolio'])
 
-parser.add_argument('--output', type=str, default=_default['output_type'], dest='output_type', help='Data output type, Default: %s' % _default['output_type'])
+parser.add_argument('--output', type=str, default=_default['output_type'], dest='output_type', help='Data output type (json/csv/all), Default: %s' % _default['output_type'])
 
 parser.add_argument('--testrange', type=int, default=_default['test_date_range'], dest='test_date_range', help='Test date range(days): %s' % _default['test_date_range'])
 

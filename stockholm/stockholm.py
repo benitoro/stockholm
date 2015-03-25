@@ -567,16 +567,17 @@ class Stockholm(object):
         print("profit_test end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
         return results
 
-    def data_load(self, start_date, end_date):
+    def data_load(self, start_date, end_date, output_types):
         all_quotes = self.load_all_quote_symbol()
         print("total " + str(len(all_quotes)) + " quotes are loaded..." + "\n")
         all_quotes = all_quotes
         ## self.load_all_quote_info(all_quotes)
         self.load_all_quote_data(all_quotes, start_date, end_date)
         self.data_process(all_quotes)
-        self.data_export(all_quotes, ["json", "csv"], None)
+        
+        self.data_export(all_quotes, output_types, None)
 
-    def data_test(self, target_date, export_type_array, test_range):
+    def data_test(self, target_date, test_range, output_types):
         all_quotes = self.file_data_load()
         target_date_time = datetime.datetime.strptime(target_date, "%Y-%m-%d")
         for i in range(test_range):
@@ -585,12 +586,24 @@ class Stockholm(object):
             if is_date_valid:
                 selected_quotes = self.quote_pick(all_quotes, date)
                 res = self.profit_test(selected_quotes, date)
-                self.data_export(res, export_type_array, 'result_' + date)
+                self.data_export(res, output_types, 'result_' + date)
 
     def run(self):
+        ## output types
+        output_types = []
+        if(self.output_type == "json"):
+            output_types.append("json")
+        elif(self.output_type == "csv"):
+            output_types.append("csv")
+        elif(self.output_type == "all"):
+            output_types = ["json", "csv"]
+            
+        ## loading stock data
         if(self.reload_data == 'Y'):
-            self.data_load(self.start_date, self.end_date)
+            self.data_load(self.start_date, self.end_date, output_types)
+            
+        ## test & generate portfolio
         if(self.gen_portfolio == 'Y'): 
-            self.data_test(self.target_date, [self.output_type], self.test_date_range)
+            self.data_test(self.target_date, self.test_date_range, output_types)
 
 
