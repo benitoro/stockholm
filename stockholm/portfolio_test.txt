@@ -1,0 +1,7 @@
+## Portfolio selection methodology sample file
+
+[method 1]:day-2.kdj_j<20 and day-1.kdj_j<20 and day0.kdj_j-day-1.kdj_j>=40 and day0.vol_change>=1 and day0.ma_10*1.05>day0.close
+
+[method 2]:day-2.kdj_j-day-1.kdj_j>20 and day0.kdj_j-day-1.kdj_j>20 and day-1.kdj_j<50 and day0.vol_change<=1
+
+[method 3]:50<day-1.kdj_j<80 and day-2.kdj_j<day-1.kdj_j and day0,kdj_j<day-1.kdj_j

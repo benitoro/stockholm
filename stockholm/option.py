@@ -16,7 +16,8 @@ _default = dict(
     end_date = get_date_str(None),
     target_date = get_date_str(None),
     store_path = 'USER_HOME/tmp/stockholm_export',
-    thread = 10
+    thread = 10,
+    testfile_path = './portfolio_test.txt'
     )
 
 parser = argparse.ArgumentParser(description='A stock crawler and portfolio testing framework.') 
@@ -39,8 +40,7 @@ parser.add_argument('--storepath', type=str, default=_default['store_path'], des
 
 parser.add_argument('--thread', type=int, default=_default['thread'], dest='thread', help='Thread number, Default: %s' % _default['thread'])
 
-## parser.add_argument('--enddate', type=str, required=True, default=_default['end_date'], dest='end_date', help='Data loading end date, Default: %s' % _default['end_date'])
-
+parser.add_argument('--testfile', type=int, default=_default['testfile_path'], dest='testfile_path', help='Portfolio test file path, Default: %s' % _default['testfile_path'])
 
 def main():
     args = parser.parse_args()
