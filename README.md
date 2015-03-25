@@ -21,9 +21,9 @@ pip install requests
 -------------
 ```shell
 python main.py [-h] [--reload {Y,N}] [--portfolio {Y,N}] 
-               [--output {json,csv}] [--storepath PATH] [--thread NUM] 
+               [--output {json,csv,all}] [--storepath PATH] [--thread NUM] 
                [--startdate YYYY-mm-DD] [--enddate YYYY-mm-DD] 
-               [--targetdate YYYY-mm-DD] [--testrange NUM]
+               [--targetdate YYYY-mm-DD] [--testrange NUM] [--testfile PATH]
 ```
 
 可选参数
@@ -32,11 +32,12 @@ python main.py [-h] [--reload {Y,N}] [--portfolio {Y,N}]
   -h, --help                  查看帮助并退出
   --reload {Y,N}              是否重新抓取股票数据，默认值：Y
   --portfolio {Y,N}           是否生成选股测试结果，默认值：N
-  --output {json,csv}         输出文件格式，默认值：json
+  --output {json,csv,all}     输出文件格式，默认值：json
   --storepath PATH            输出文件路径，默认值：~/tmp/stockholm_export
   --thread NUM                线程数，默认值：10
   --startdate YYYY-mm-DD      抓取数据的开始日期，默认值：当前系统日期-100天（例如2015-01-01）
   --enddate YYYY-mm-DD        抓取数据的结束日期，默认值：当前系统日期
   --targetdate YYYY-mm-DD     测试选股策略的目标日期，默认值：当前系统日期
   --testrange NUM             测试日期范围天数，默认值：50
+  --testfile PATH             测试文件路径，默认值：./portfolio_test.txt
 ```
