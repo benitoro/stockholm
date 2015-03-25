@@ -40,7 +40,7 @@ parser.add_argument('--storepath', type=str, default=_default['store_path'], des
 
 parser.add_argument('--thread', type=int, default=_default['thread'], dest='thread', help='Thread number, Default: %s' % _default['thread'])
 
-parser.add_argument('--testfile', type=int, default=_default['testfile_path'], dest='testfile_path', help='Portfolio test file path, Default: %s' % _default['testfile_path'])
+parser.add_argument('--testfile', type=str, default=_default['testfile_path'], dest='testfile_path', help='Portfolio test file path, Default: %s' % _default['testfile_path'])
 
 def main():
     args = parser.parse_args()
