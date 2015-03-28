@@ -7,6 +7,7 @@ import time
 import io
 import os
 import csv
+import re
 ## from pymongo import MongoClient
 from multiprocessing.dummy import Pool as ThreadPool
 from functools import partial
@@ -30,12 +31,13 @@ class Stockholm(object):
         self.target_date = args.target_date
         ## thread number
         self.thread = args.thread
-        
         ## data file store path
         if(args.store_path == 'USER_HOME/tmp/stockholm_export'):
             self.export_folder = os.path.expanduser('~') + '/tmp/stockholm_export'
         else:
-            self.export_folder = args.store_path 
+            self.export_folder = args.store_path
+        ## portfolio testing file path
+        self.testfile_path = args.testfile_path
 
         ## for getting quote symbols
         self.all_quotes_url = 'http://money.finance.sina.com.cn/d/api/openapi_proxy.php'
@@ -77,6 +79,25 @@ class Stockholm(object):
                 n += 1
                 total += num
         return round(total/n, 3)
+
+    def convert_value_check(self, exp):
+        val = exp.replace('day', 'quote[\'Data\']').replace('(0)', '(-0)')
+        val = re.sub(r'\(((-)?\d+)\)', r'[target_idx\g<1>]', val)
+        val = re.sub(r'\.\{((-)?\w+)\}', r"['\g<1>']", val)
+        return val
+
+    def convert_null_check(self, exp):
+        p = re.compile('\((-)?\d+...\w+\}')
+        iterator = p.finditer(exp.replace('(0)', '(-0)'))
+        array = []
+        for match in iterator:
+            v = 'quote[\'Data\']' + match.group()
+            v = re.sub(r'\(((-)?\d+)\)', r'[target_idx\g<1>]', v)
+            v = re.sub(r'\.\{((-)?\w+)\}', r"['\g<1>']", v)
+            v += ' is not None'
+            array.append(v)
+        val = ' and '.join(array)
+        return val
 
     class KDJ():
         def _avg(self, array):
@@ -405,7 +426,7 @@ class Stockholm(object):
             print(date + " is not valid...")
         return is_date_valid
 
-    def quote_pick(self, all_quotes, target_date):
+    def quote_pick(self, all_quotes, target_date, methods):
         print("quote_pick start..." + "\n")
         
         start = timeit.default_timer()
@@ -429,42 +450,20 @@ class Stockholm(object):
                     continue
                 
                 ## pick logic ##
-                kdj_j_day_0 = quote['Data'][target_idx]['KDJ_J']
-                kdj_j_day_m_1 = quote['Data'][target_idx-1]['KDJ_J']
-                kdj_j_day_m_2 = quote['Data'][target_idx-2]['KDJ_J']
-                kdj_j_day_m_3 = quote['Data'][target_idx-3]['KDJ_J']
-                change_day_0 = quote['Data'][target_idx]['Change']
-                change_day_m_1 = quote['Data'][target_idx-1]['Change']
-                change_day_m_2 = quote['Data'][target_idx-2]['Change']
-                change_day_m_3 = quote['Data'][target_idx-3]['Change']
-                vol_change_day_0 = quote['Data'][target_idx]['Change']
-                vol_change_day_m_1 = quote['Data'][target_idx-1]['Vol_Change']
-                vol_change_day_m_2 = quote['Data'][target_idx-2]['Vol_Change']
-                vol_change_day_m_3 = quote['Data'][target_idx-3]['Vol_Change']
-                            
-                if(kdj_j_day_0 is not None):
-                    if(kdj_j_day_m_3 is not None):
-                        if(kdj_j_day_m_2 is not None and kdj_j_day_m_3 < kdj_j_day_m_2):
-                            if(kdj_j_day_m_1 is not None and 50 < kdj_j_day_m_1 < 80 and kdj_j_day_m_2 < kdj_j_day_m_1):
-                                if(kdj_j_day_0 < kdj_j_day_m_1):
-                                    results.append(quote)
-                                    continue
-                    
-                    if(kdj_j_day_m_2 is not None and kdj_j_day_m_2 < 20):
-                        if(kdj_j_day_m_1 is not None and kdj_j_day_m_1 < 20):
-                            if(kdj_j_day_0 - kdj_j_day_m_1 >= 40):
-                                if(quote['Data'][target_idx]['Vol_Change'] >= 1):
-                                    if(quote['Data'][target_idx]['MA_10']*1.05 > quote['Data'][target_idx]['Close']):
-                                        results.append(quote)
-                                        continue
-                                        
-                    if(kdj_j_day_m_2 is not None):
-                        if(kdj_j_day_m_1 is not None and kdj_j_day_m_2-kdj_j_day_m_1 >= 20):
-                            if(kdj_j_day_0 - kdj_j_day_m_1 >= 20):
-                                if(kdj_j_day_m_1 < 50):
-                                    if(quote['Data'][target_idx]['Vol_Change'] <= 1):
-                                        results.append(quote)
-                                        continue
+                valid = False
+                for method in methods:
+                    ## print(method['name'])
+                    ## null_check = eval(method['null_check'])
+                    try:
+                        value_check = eval(method['value_check'])
+                        if(value_check):
+                            results.append(quote)
+                            valid = True
+                            break
+                    except:
+                        valid = False
+                if(valid):
+                    continue
                                     
                 ## pick logic end ##
                 
@@ -578,13 +577,33 @@ class Stockholm(object):
         self.data_export(all_quotes, output_types, None)
 
     def data_test(self, target_date, test_range, output_types):
+        ## loading test file
+        path = self.testfile_path
+        if not os.path.exists(path):
+            print("Portfolio test file is not existed, testing is aborted...\n")
+            return
+        methods = []
+        f = io.open(path, 'r', encoding='utf-8')
+        for line in f:
+            if(line.startswith('##') or len(line.strip()) == 0):
+                continue
+            line = line.strip().strip('\n')
+            name = line[line.find('[')+1:line.find(']:')]
+            value = line[line.find(']:')+2:]
+            m = {'name': name, 'value_check': self.convert_value_check(value)}
+            methods.append(m)
+        if(len(methods) == 0):
+            print("No method in the file, testing is aborted...\n")
+            return
+
+        ## portfolio testing 
         all_quotes = self.file_data_load()
         target_date_time = datetime.datetime.strptime(target_date, "%Y-%m-%d")
         for i in range(test_range):
             date = (target_date_time - datetime.timedelta(days=i)).strftime("%Y-%m-%d")
             is_date_valid = self.check_date(all_quotes, date)
             if is_date_valid:
-                selected_quotes = self.quote_pick(all_quotes, date)
+                selected_quotes = self.quote_pick(all_quotes, date, methods)
                 res = self.profit_test(selected_quotes, date)
                 self.data_export(res, output_types, 'result_' + date)
 
@@ -600,10 +619,12 @@ class Stockholm(object):
             
         ## loading stock data
         if(self.reload_data == 'Y'):
+            print("Start loading stock data...\n")
             self.data_load(self.start_date, self.end_date, output_types)
             
         ## test & generate portfolio
-        if(self.gen_portfolio == 'Y'): 
+        if(self.gen_portfolio == 'Y'):
+            print("Start portfolio testing...\n")
             self.data_test(self.target_date, self.test_date_range, output_types)
 
 
