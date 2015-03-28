@@ -2,7 +2,7 @@ Stockholm
 =======
 
 #### 一个股票数据（沪深）爬虫和选股策略测试框架，数据基于雅虎YQL和新浪财经。
-* 根据选定的日期范围抓取所有沪深两市股票的基本数据。
+* 根据选定的日期范围抓取所有沪深两市股票的行情数据。
 * 根据指定的选股策略和指定的日期进行选股测试。
 * 计算选股测试实际结果（包括与沪深300指数比较）。
 * 保存数据到JSON文件、CSV文件。
@@ -57,9 +57,10 @@ python main.py [-h] [--reload {Y,N}] [--portfolio {Y,N}]
 	}
 ]
 ```
-Date(日期); Open(开盘价); Close(收盘价); High(当日最高); Low(当日最低); Change(价格变化%); Volume(成交量); Vol_Change(成交量较前日变化); MA_10(十天均价); KDJ_K(KDJ指标K); KDJ_D(KDJ指标D); KDJ_J(KDJ指标J); 
+Date(日期); Open(开盘价); Close(收盘价); High(当日最高); Low(当日最低); Change(价格变化%); Volume(成交量); Vol_Change(成交量较前日变化); MA_10(十天均价); KDJ_K(KDJ指标K); KDJ_D(KDJ指标D); KDJ_J(KDJ指标J); <br \>
+以上数据都可以用于制定选股策略，后面会介绍具体方法。<br \>
 
-### 选股策略测试数:
+### 选股策略测试数据:
 ```shell
 [
 	{
@@ -95,7 +96,7 @@ python main.py --output=csv
 选股策略测试范例
 -------------
 选股策略范例文件内容如下(包括在源码中)<br />
-method 1选股策略是:前前个交易日的KDJ指标的J值小于20+前个交易日的KDJ指标J值小于20+当前交易日的KDJ指标J值比上个交易日大40+当前交易日成交量变化大于100%<br />
+选股策略"method 1"是:前前个交易日的KDJ指标的J值小于20+前个交易日的KDJ指标J值小于20+当前交易日的KDJ指标J值比上个交易日大40+当前交易日成交量变化大于100%<br />
 ```shell
 ## Portfolio selection methodology sample file
 
