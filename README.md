@@ -23,8 +23,8 @@ pip install requests
 ```shell
 python main.py [-h] [--reload {Y,N}] [--portfolio {Y,N}] 
                [--output {json,csv,all}] [--storepath PATH] [--thread NUM] 
-               [--startdate YYYY-mm-DD] [--enddate YYYY-mm-DD] 
-               [--targetdate YYYY-mm-DD] [--testrange NUM] [--testfile PATH]
+               [--startdate yyyy-MM-dd] [--enddate yyyy-MM-dd] 
+               [--targetdate yyyy-MM-dd] [--testrange NUM] [--testfile PATH]
 ```
 
 可选参数
@@ -36,9 +36,9 @@ python main.py [-h] [--reload {Y,N}] [--portfolio {Y,N}]
   --output {json,csv,all}     输出文件格式，默认值：json
   --storepath PATH            输出文件路径，默认值：~/tmp/stockholm_export
   --thread NUM                线程数，默认值：10
-  --startdate YYYY-mm-DD      抓取数据的开始日期，默认值：当前系统日期-100天（例如2015-01-01）
-  --enddate YYYY-mm-DD        抓取数据的结束日期，默认值：当前系统日期
-  --targetdate YYYY-mm-DD     测试选股策略的目标日期，默认值：当前系统日期
+  --startdate yyyy-MM-dd      抓取数据的开始日期，默认值：当前系统日期-100天（例如2015-01-01）
+  --enddate yyyy-MM-dd        抓取数据的结束日期，默认值：当前系统日期
+  --targetdate yyyy-MM-dd     测试选股策略的目标日期，默认值：当前系统日期
   --testrange NUM             测试日期范围天数，默认值：50
   --testfile PATH             测试文件路径，默认值：./portfolio_test.txt
 ```
@@ -58,7 +58,7 @@ python main.py [-h] [--reload {Y,N}] [--portfolio {Y,N}]
 ]
 ```
 Date(日期); Open(开盘价); Close(收盘价); High(当日最高); Low(当日最低); Change(价格变化%); Volume(成交量); Vol_Change(成交量较前日变化); MA_10(十天均价); KDJ_K(KDJ指标K); KDJ_D(KDJ指标D); KDJ_J(KDJ指标J); <br \>
-以上数据都可以用于制定选股策略，后面会介绍具体方法。<br \>
+以上数据都可以用于制定选股策略，后面会介绍具体方法。其他指标如Boll, MACD也会考虑加入。<br \>
 
 ### 选股策略测试数据:
 ```shell
