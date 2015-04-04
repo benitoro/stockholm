@@ -294,6 +294,14 @@ class Stockholm(object):
         start = timeit.default_timer()
         
         for quote in all_quotes:
+
+            if(quote['Symbol'].startswith('300')):
+                quote['Type'] = '创业板'
+            elif(quote['Symbol'].startswith('002')):
+                quote['Type'] = '中小板'
+            else:
+                quote['Type'] = '主板'
+            
             if('Data' in quote):
                 try:
                     temp_data = []
@@ -508,6 +516,7 @@ class Stockholm(object):
             test = {}
             test['Name'] = quote['Name']
             test['Symbol'] = quote['Symbol']
+            test['Type'] = quote['Type']
             test['KDJ_K'] = quote['Data'][target_idx]['KDJ_K']
             test['KDJ_D'] = quote['Data'][target_idx]['KDJ_D']
             test['KDJ_J'] = quote['Data'][target_idx]['KDJ_J']
