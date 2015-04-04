@@ -8,7 +8,7 @@ import io
 import os
 import csv
 import re
-## from pymongo import MongoClient
+from pymongo import MongoClient
 from multiprocessing.dummy import Pool as ThreadPool
 from functools import partial
 
@@ -52,6 +52,12 @@ class Stockholm(object):
         self.sh000300 = {'Symbol': '000300.SS', 'Name': '沪深300'}
         ## self.sz399005 = {'Symbol': '399005.SZ', 'Name': '中小板指'}
         ## self.sz399006 = {'Symbol': '399006.SZ', 'Name': '创业板指'}
+
+        ## mongodb info
+        self.mongo_url = 'localhost'
+        self.mongo_port = 27017
+        self.database_name = 'stockholm'
+        self.collection_name = 'testing_method'
         
     def get_columns(self, quote):
         columns = []
@@ -371,15 +377,15 @@ class Stockholm(object):
             os.makedirs(directory)
 
         if(all_quotes is None or len(all_quotes) == 0):
-            print("no data to export...")
+            print("no data to export...\n")
         
         if('json' in export_type_array):
-            print("start export to JSON file...")
+            print("start export to JSON file...\n")
             f = io.open(directory + '/' + file_name + '.json', 'w', encoding='utf-8')
             json.dump(all_quotes, f, ensure_ascii=False)
             
         if('csv' in export_type_array):
-            print("start export to CSV file...")
+            print("start export to CSV file...\n")
             columns = []
             if(all_quotes is not None and len(all_quotes) > 0):
                 columns = self.get_columns(all_quotes[0])
@@ -403,7 +409,7 @@ class Stockholm(object):
                             print("write csv error: " + quote)
             
         if('mongo' in export_type_array):
-            print("start export to MongoDB...")
+            print("start export to MongoDB...\n")
             
         print("export is complete... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
 
@@ -431,7 +437,7 @@ class Stockholm(object):
                     if(quote_data['Date'] == date):
                         is_date_valid = True
         if not is_date_valid:
-            print(date + " is not valid...")
+            print(date + " is not valid...\n")
         return is_date_valid
 
     def quote_pick(self, all_quotes, target_date, methods):
@@ -465,6 +471,7 @@ class Stockholm(object):
                     try:
                         value_check = eval(method['value_check'])
                         if(value_check):
+                            quote['Method'] = method['name']
                             results.append(quote)
                             valid = True
                             break
@@ -480,7 +487,7 @@ class Stockholm(object):
                 data_issue_count+=1
                 
         print("quote_pick end... time cost: " + str(round(timeit.default_timer() - start)) + "s" + "\n")
-        print(str(data_issue_count) + " quotes of data is not available...")
+        print(str(data_issue_count) + " quotes of data is not available...\n")
         return results
 
     def profit_test(self, selected_quotes, target_date):
@@ -516,6 +523,7 @@ class Stockholm(object):
             test = {}
             test['Name'] = quote['Name']
             test['Symbol'] = quote['Symbol']
+            test['Method'] = quote['Method']
             test['Type'] = quote['Type']
             test['KDJ_K'] = quote['Data'][target_idx]['KDJ_K']
             test['KDJ_D'] = quote['Data'][target_idx]['KDJ_D']
@@ -586,23 +594,37 @@ class Stockholm(object):
         self.data_export(all_quotes, output_types, None)
 
     def data_test(self, target_date, test_range, output_types):
-        ## loading test file
-        path = self.testfile_path
-        if not os.path.exists(path):
-            print("Portfolio test file is not existed, testing is aborted...\n")
-            return
+        ## loading test methods
         methods = []
-        f = io.open(path, 'r', encoding='utf-8')
-        for line in f:
-            if(line.startswith('##') or len(line.strip()) == 0):
-                continue
-            line = line.strip().strip('\n')
-            name = line[line.find('[')+1:line.find(']:')]
-            value = line[line.find(']:')+2:]
-            m = {'name': name, 'value_check': self.convert_value_check(value)}
-            methods.append(m)
+        path = self.testfile_path
+        
+        ## from mongodb
+        if(path == 'mongodb'):
+            print("Load testing methods from Mongodb...\n")
+            client = MongoClient(self.mongo_url, self.mongo_port)
+            db = client[self.database_name]
+            col = db[self.collection_name]
+            for doc in col.find(None, ['name','desc','method']):
+                m = {'name': doc['name'], 'value_check': self.convert_value_check(doc['method'])}
+                methods.append(m)
+                
+        ## from test file
+        else:
+            if not os.path.exists(path):
+                print("Portfolio test file is not existed, testing is aborted...\n")
+                return
+            f = io.open(path, 'r', encoding='utf-8')
+            for line in f:
+                if(line.startswith('##') or len(line.strip()) == 0):
+                    continue
+                line = line.strip().strip('\n')
+                name = line[line.find('[')+1:line.find(']:')]
+                value = line[line.find(']:')+2:]
+                m = {'name': name, 'value_check': self.convert_value_check(value)}
+                methods.append(m)
+                
         if(len(methods) == 0):
-            print("No method in the file, testing is aborted...\n")
+            print("No method is loaded, testing is aborted...\n")
             return
 
         ## portfolio testing 

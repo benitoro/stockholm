@@ -1,0 +1,6 @@
+use stockholm
+
+db.testing_method.insert({"name":"测试方法1", "desc":"", "method":"day(-2).{KDJ_J}<20 and day(-1).{KDJ_J}<20 and day(0).{KDJ_J}-day(-1).{KDJ_J}>=40 and day(0).{Vol_Change}>=1 and day(0).{MA_10}*1.05>day(0).{Close}"})
+
+db.testing_method.insert({"name":"测试方法2", "desc":"", "method":"day(-2).{KDJ_J}-day(-1).{KDJ_J}>20 and day(0).{KDJ_J}-day(-1).{KDJ_J}>20 and day(-1).{KDJ_J}<50 and day(0).{Vol_Change}<=1"})
+
