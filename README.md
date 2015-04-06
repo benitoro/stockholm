@@ -13,9 +13,11 @@ Stockholm
 -------------
 Python 3.4以上<br \>
 [Requests](http://www.python-requests.org/en/latest/)<br \>
+[PyMongo](http://api.mongodb.org/python/current/installation.html)<br \>
 OSX和CentOS已测。Windows尚未测试，输出路径可能有问题。
 ```shell
 pip install requests
+pip install pymongo
 ```
 
 使用
