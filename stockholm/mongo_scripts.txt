@@ -1,6 +1,25 @@
 use stockholm
 
-db.testing_method.insert({"name":"测试方法1", "desc":"这是一个测试方法。", "user_name":"Stockholm", "user_id":"dtnium@gmail.com", "creation_date": new Date(), "modification_date": new Date(), "method":"day(-2).{KDJ_J}<20 and day(-1).{KDJ_J}<20 and day(0).{KDJ_J}-day(-1).{KDJ_J}>=40 and day(0).{Vol_Change}>=1 and day(0).{MA_10}*1.05>day(0).{Close}"})
+db.counters.insert(
+   {
+      _id: "method_id",
+      seq: 0
+   }
+)
 
-db.testing_method.insert({"name":"测试方法2", "desc":"这是一个测试方法。", "user_name":"Stockholm", "user_id":"dtnium@gmail.com", "creation_date": new Date(), "modification_date": new Date(), "method":"day(-2).{KDJ_J}-day(-1).{KDJ_J}>20 and day(0).{KDJ_J}-day(-1).{KDJ_J}>20 and day(-1).{KDJ_J}<50 and day(0).{Vol_Change}<=1"})
+function getNextSequence(name) {
+   var ret = db.counters.findAndModify(
+          {
+            query: { _id: name },
+            update: { $inc: { seq: 1 } },
+            new: true
+          }
+   );
+
+   return ret.seq;
+}
+
+db.testing_method.insert({"method_id": getNextSequence("method_id"), "name":"测试方法1", "desc":"这是一个测试方法。", "user_name":"Stockholm", "user_id":"dtnium@gmail.com", "creation_date": new Date(), "modification_date": new Date(), "method":"day(-2).{KDJ_J}<20 and day(-1).{KDJ_J}<20 and day(0).{KDJ_J}-day(-1).{KDJ_J}>=40 and day(0).{Vol_Change}>=1 and day(0).{MA_10}*1.05>day(0).{Close}"})
+
+db.testing_method.insert({"method_id": getNextSequence("method_id"), "name":"测试方法2", "desc":"这是一个测试方法。", "user_name":"Stockholm", "user_id":"dtnium@gmail.com", "creation_date": new Date(), "modification_date": new Date(), "method":"day(-2).{KDJ_J}-day(-1).{KDJ_J}>20 and day(0).{KDJ_J}-day(-1).{KDJ_J}>20 and day(-1).{KDJ_J}<50 and day(0).{Vol_Change}<=1"})
 
