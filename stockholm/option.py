@@ -17,7 +17,8 @@ _default = dict(
     target_date = get_date_str(None),
     store_path = 'USER_HOME/tmp/stockholm_export',
     thread = 10,
-    testfile_path = './portfolio_test.txt'
+    testfile_path = './portfolio_test.txt',
+    db_name = 'stockholm'
     )
 
 parser = argparse.ArgumentParser(description='A stock crawler and portfolio testing framework.') 
@@ -41,6 +42,8 @@ parser.add_argument('--storepath', type=str, default=_default['store_path'], des
 parser.add_argument('--thread', type=int, default=_default['thread'], dest='thread', help='Thread number, Default: %s' % _default['thread'])
 
 parser.add_argument('--testfile', type=str, default=_default['testfile_path'], dest='testfile_path', help='Portfolio test file path, Default: %s' % _default['testfile_path'])
+
+parser.add_argument('--dbname', type=str, default=_default['db_name'], dest='db_name', help='MongoDB DB name, Default: %s' % _default['db_name'])
 
 def main():
     args = parser.parse_args()

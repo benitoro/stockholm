@@ -56,7 +56,7 @@ class Stockholm(object):
         ## mongodb info
         self.mongo_url = 'localhost'
         self.mongo_port = 27017
-        self.database_name = 'stockholm'
+        self.database_name = args.db_name
         self.collection_name = 'testing_method'
         
     def get_columns(self, quote):
@@ -605,6 +605,7 @@ class Stockholm(object):
             db = client[self.database_name]
             col = db[self.collection_name]
             for doc in col.find(None, ['name','desc','method']):
+                print(doc)
                 m = {'name': doc['name'], 'value_check': self.convert_value_check(doc['method'])}
                 methods.append(m)
                 
