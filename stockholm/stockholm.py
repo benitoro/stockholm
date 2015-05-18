@@ -38,6 +38,8 @@ class Stockholm(object):
             self.export_folder = args.store_path
         ## portfolio testing file path
         self.testfile_path = args.testfile_path
+        ## methods for back testing
+        self.methods = args.methods
 
         ## for getting quote symbols
         self.all_quotes_url = 'http://money.finance.sina.com.cn/d/api/openapi_proxy.php'
@@ -604,7 +606,11 @@ class Stockholm(object):
             client = MongoClient(self.mongo_url, self.mongo_port)
             db = client[self.database_name]
             col = db[self.collection_name]
-            for doc in col.find(None, ['name','desc','method']):
+            q = None
+            if(len(self.methods) > 0):
+                applied_methods = list(map(int, self.methods.split(',')))
+                q = {"method_id": {"$in": applied_methods}}
+            for doc in col.find(q, ['name','desc','method']):
                 print(doc)
                 m = {'name': doc['name'], 'value_check': self.convert_value_check(doc['method'])}
                 methods.append(m)
