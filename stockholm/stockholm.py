@@ -330,11 +330,10 @@ class Stockholm(object):
                     print(e)
                     print(quote)
 
-        ## calculate Change / 10 Day MA
+        ## calculate Change / 5 10 20 30 Day MA
         for quote in all_quotes:
             if('Data' in quote):
                 try:
-                    last_10_array = []
                     for i, quote_data in enumerate(quote['Data']):
                         if(i > 0):
                             quote_data['Change'] = self.get_profit_rate(quote['Data'][i-1]['Close'], quote_data['Close'])
@@ -343,14 +342,44 @@ class Stockholm(object):
                             quote_data['Change'] = None
                             quote_data['Vol_Change'] = None
                             
+                    last_5_array = []
+                    last_10_array = []
+                    last_20_array = []
+                    last_30_array = []
                     for i, quote_data in enumerate(quote['Data']):
+                        last_5_array.append(quote_data['Close'])
                         last_10_array.append(quote_data['Close'])
+                        last_20_array.append(quote_data['Close'])
+                        last_30_array.append(quote_data['Close'])
+                        quote_data['MA_5'] = None
+                        quote_data['MA_10'] = None
+                        quote_data['MA_20'] = None
+                        quote_data['MA_30'] = None
+                        
+                        if(i < 4):
+                            continue
+                        if(len(last_5_array) == 5):
+                            last_5_array.pop(0)
+                        quote_data['MA_5'] = self.get_MA(last_5_array)
+                        
                         if(i < 9):
-                            quote_data['MA_10'] = None
                             continue
                         if(len(last_10_array) == 10):
                             last_10_array.pop(0)
                         quote_data['MA_10'] = self.get_MA(last_10_array)
+                        
+                        if(i < 19):
+                            continue
+                        if(len(last_20_array) == 20):
+                            last_20_array.pop(0)
+                        quote_data['MA_20'] = self.get_MA(last_20_array)
+                        
+                        if(i < 29):
+                            continue
+                        if(len(last_30_array) == 30):
+                            last_30_array.pop(0)
+                        quote_data['MA_30'] = self.get_MA(last_30_array)
+                        
                         
                 except KeyError as e:
                     print("Key Error")
@@ -533,7 +562,10 @@ class Stockholm(object):
             test['Close'] = quote['Data'][target_idx]['Close']
             test['Change'] = quote['Data'][target_idx]['Change']
             test['Vol_Change'] = quote['Data'][target_idx]['Vol_Change']
+            test['MA_5'] = quote['Data'][target_idx]['MA_5']
             test['MA_10'] = quote['Data'][target_idx]['MA_10']
+            test['MA_20'] = quote['Data'][target_idx]['MA_20']
+            test['MA_30'] = quote['Data'][target_idx]['MA_30']
             test['Data'] = [{}]
             
             if(target_idx+1 >= len(quote['Data'])):
