@@ -72,7 +72,7 @@ python main.py [-h] [--reload {Y,N}] [--portfolio {Y,N}]
 	}
 ]
 ```
-Date(日期); Open(开盘价); Close(收盘价); High(当日最高); Low(当日最低); Change(价格变化%); Volume(成交量); Vol_Change(成交量较前日变化); MA_10(十日均线); KDJ_K(KDJ指标K); KDJ_D(KDJ指标D); KDJ_J(KDJ指标J); <br \>
+Date(日期); Open(开盘价); Close(收盘价); High(当日最高); Low(当日最低); Change(价格变化%); Volume(成交量); Vol_Change(成交量较前日变化); MA_5(5日均线); MA_10(10日均线); MA_20(20日均线); MA_30(30日均线); KDJ_K(KDJ指标K); KDJ_D(KDJ指标D); KDJ_J(KDJ指标J); <br \>
 以上数据都可以用于制定选股策略，后面会介绍具体方法。<br \>
 
 ### 选股策略测试数据:
