@@ -567,50 +567,17 @@ class Stockholm(object):
             test['MA_20'] = quote['Data'][target_idx]['MA_20']
             test['MA_30'] = quote['Data'][target_idx]['MA_30']
             test['Data'] = [{}]
-            
-            if(target_idx+1 >= len(quote['Data'])):
-                print(quote['Name'] + " data is not available for 1 day testing..." + "\n")
-                results.append(test)
-                continue
 
-            day_1_profit = self.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+1]['Close'])
-            test['Data'][0]['Day_1_Profit'] = day_1_profit
-            day_1_INDEX_change = self.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+1]['Close'])
-            test['Data'][0]['Day_1_INDEX_Change'] = day_1_INDEX_change
-            test['Data'][0]['Day_1_Differ'] = day_1_profit-day_1_INDEX_change
-            
-            if(target_idx+3 >= len(quote['Data'])):
-                print(quote['Name'] + " data is not available for 3 days testing..." + "\n")
-                results.append(test)
-                continue
-            
-            day_3_profit = self.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+3]['Close'])
-            test['Data'][0]['Day_3_Profit'] = day_3_profit
-            day_3_INDEX_change = self.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+3]['Close'])
-            test['Data'][0]['Day_3_INDEX_Change'] = day_3_INDEX_change
-            test['Data'][0]['Day_3_Differ'] = day_3_profit-day_3_INDEX_change
+            for i in range(1,10):
+                if(target_idx+i >= len(quote['Data'])):
+                    print(quote['Name'] + " data is not available for " + str(i) + " day testing..." + "\n")
+                    break
 
-            if(target_idx+5 >= len(quote['Data'])):
-                print(quote['Name'] + " data is not available for 5 days testing..." + "\n")
-                results.append(test)
-                continue
-            
-            day_5_profit = self.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+5]['Close'])
-            test['Data'][0]['Day_5_Profit'] = day_5_profit
-            day_5_INDEX_change = self.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+5]['Close'])
-            test['Data'][0]['Day_5_INDEX_Change'] = day_5_INDEX_change
-            test['Data'][0]['Day_5_Differ'] = day_5_profit-day_5_INDEX_change
-            
-            if(target_idx+9 >= len(quote['Data'])):
-                print(quote['Name'] + " data is not available for 9 days testing..." + "\n")
-                results.append(test)
-                continue
-            
-            day_9_profit = self.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+9]['Close'])
-            test['Data'][0]['Day_9_Profit'] = day_9_profit
-            day_9_INDEX_change = self.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+9]['Close'])
-            test['Data'][0]['Day_9_INDEX_Change'] = day_9_INDEX_change
-            test['Data'][0]['Day_9_Differ'] = day_9_profit-day_9_INDEX_change
+                day2day_profit = self.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+i]['Close'])
+                test['Data'][0]['Day_' + str(i) + '_Profit'] = day2day_profit
+                day2day_INDEX_change = self.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+i]['Close'])
+                test['Data'][0]['Day_' + str(i) + '_INDEX_Change'] = day2day_INDEX_change
+                test['Data'][0]['Day_' + str(i) + '_Differ'] = day2day_profit-day2day_INDEX_change
             
             results.append(test)
             
