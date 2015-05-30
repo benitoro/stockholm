@@ -94,7 +94,7 @@ Date(日期); Open(开盘价); Close(收盘价); High(当日最高); Low(当日�
 	}
 ]
 ```
-Close(收盘价); Change(价格变化%); Vol_Change(成交量较前日变化); MA_10(十天均价); KDJ_K(KDJ指标K); KDJ_D(KDJ指标D); KDJ_J(KDJ指标J); Day_1_Profit(后一天利润率%); Day_1_INDEX_Change(后一天沪深300变化率%); Day_1_Differ(后一天相对利润率%——即利润率-沪深300变化率);
+Close(收盘价); Change(价格变化%); Vol_Change(成交量较前日变化); MA_10(十天均价); KDJ_K(KDJ指标K); KDJ_D(KDJ指标D); KDJ_J(KDJ指标J); Day_1_Profit(后一天利润率%); Day_1_INDEX_Change(后一天沪深300变化率%); Day_1_Differ(后一天相对利润率%——即利润率-沪深300变化率); Day_n_Profit(后n天利润率%); Day_n_INDEX_Change(后n天沪深300变化率%); Day_n_Differ(后n天相对利润率%——即利润率-沪深300变化率);
 
 行情数据抓取范例
 -------------
