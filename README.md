@@ -49,6 +49,7 @@ python main.py [-h] [--reload {Y,N}] [--portfolio {Y,N}]
   --reload {Y,N}              是否重新抓取股票数据，默认值：Y
   --portfolio {Y,N}           是否生成选股测试结果，默认值：N
   --output {json,csv,all}     输出文件格式，默认值：json
+  --charset {utf-8,gbk}       输出文件编码，默认值：utf-8
   --storepath PATH            输出文件路径，默认值：~/tmp/stockholm_export
   --thread NUM                线程数，默认值：10
   --startdate yyyy-MM-dd      抓取数据的开始日期，默认值：当前系统日期-100天（例如2015-01-01）
