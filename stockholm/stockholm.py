@@ -21,6 +21,8 @@ class Stockholm(object):
         self.gen_portfolio = args.gen_portfolio
         ## type of output file json/csv or both
         self.output_type = args.output_type
+        ## charset of output file utf-8/gbk
+        self.charset = args.charset
         ## portfolio testing date range(# of days)
         self.test_date_range = args.test_date_range
         ## stock data loading start date(e.g. 2014-09-14)
@@ -412,7 +414,7 @@ class Stockholm(object):
         
         if('json' in export_type_array):
             print("start export to JSON file...\n")
-            f = io.open(directory + '/' + file_name + '.json', 'w', encoding='utf-8')
+            f = io.open(directory + '/' + file_name + '.json', 'w', encoding=self.charset)
             json.dump(all_quotes, f, ensure_ascii=False)
             
         if('csv' in export_type_array):
@@ -420,7 +422,7 @@ class Stockholm(object):
             columns = []
             if(all_quotes is not None and len(all_quotes) > 0):
                 columns = self.get_columns(all_quotes[0])
-            writer = csv.writer(open(directory + '/' + file_name + '.csv', 'w', encoding='gbk'))
+            writer = csv.writer(open(directory + '/' + file_name + '.csv', 'w', encoding=self.charset))
             writer.writerow(columns)
 
             for quote in all_quotes:

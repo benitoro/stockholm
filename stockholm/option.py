@@ -11,6 +11,7 @@ _default = dict(
     reload_data = 'Y',
     gen_portfolio = 'N',
     output_type = 'json',
+    charset = 'utf-8',
     test_date_range = 50,
     start_date = get_date_str(-100),
     end_date = get_date_str(None),
@@ -29,6 +30,8 @@ parser.add_argument('--reload', type=str, default=_default['reload_data'], dest=
 parser.add_argument('--portfolio', type=str, default=_default['gen_portfolio'], dest='gen_portfolio', help='Generate the portfolio or not (Y/N), Default: %s' % _default['gen_portfolio'])
 
 parser.add_argument('--output', type=str, default=_default['output_type'], dest='output_type', help='Data output type (json/csv/all), Default: %s' % _default['output_type'])
+
+parser.add_argument('--charset', type=str, default=_default['charset'], dest='charset', help='Data output charset (utf-8/gbk), Default: %s' % _default['charset'])
 
 parser.add_argument('--testrange', type=int, default=_default['test_date_range'], dest='test_date_range', help='Test date range(days): %s' % _default['test_date_range'])
 
