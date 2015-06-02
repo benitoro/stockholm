@@ -577,9 +577,10 @@ class Stockholm(object):
 
                 day2day_profit = self.get_profit_rate(quote['Data'][target_idx]['Close'], quote['Data'][target_idx+i]['Close'])
                 test['Data'][0]['Day_' + str(i) + '_Profit'] = day2day_profit
-                day2day_INDEX_change = self.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+i]['Close'])
-                test['Data'][0]['Day_' + str(i) + '_INDEX_Change'] = day2day_INDEX_change
-                test['Data'][0]['Day_' + str(i) + '_Differ'] = day2day_profit-day2day_INDEX_change
+                if(INDEX_idx+i < len(INDEX['Data'])):
+                    day2day_INDEX_change = self.get_profit_rate(INDEX['Data'][INDEX_idx]['Close'], INDEX['Data'][INDEX_idx+i]['Close'])
+                    test['Data'][0]['Day_' + str(i) + '_INDEX_Change'] = day2day_INDEX_change
+                    test['Data'][0]['Day_' + str(i) + '_Differ'] = day2day_profit-day2day_INDEX_change
             
             results.append(test)
             
