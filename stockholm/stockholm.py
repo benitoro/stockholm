@@ -570,7 +570,7 @@ class Stockholm(object):
             test['MA_30'] = quote['Data'][target_idx]['MA_30']
             test['Data'] = [{}]
 
-            for i in range(1,10):
+            for i in range(1,11):
                 if(target_idx+i >= len(quote['Data'])):
                     print(quote['Name'] + " data is not available for " + str(i) + " day testing..." + "\n")
                     break
