@@ -320,7 +320,7 @@ class Stockholm(object):
                             d = {}
                             d['Open'] = float(quote_data['Open'])
                             ## d['Adj_Close'] = float(quote_data['Adj_Close'])
-                            d['Close'] = float(quote_data['Adj_Close'])
+                            d['Close'] = float(quote_data['Close'])
                             d['High'] = float(quote_data['High'])
                             d['Low'] = float(quote_data['Low'])
                             d['Volume'] = int(quote_data['Volume'])
