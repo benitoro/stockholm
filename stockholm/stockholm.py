@@ -330,7 +330,7 @@ class Stockholm(object):
                 except KeyError as e:
                     print("Data Process: Key Error")
                     print(e)
-                    ## print(quote)
+                    print(quote)
 
         ## calculate Change / 5 10 20 30 Day MA
         for quote in all_quotes:
