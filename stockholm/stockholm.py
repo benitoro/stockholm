@@ -263,8 +263,8 @@ class Stockholm(object):
             r = requests.get(self.yql_url, params=r_params)
             ## print(r.url)
             ## print(r.text)
-            rjson = r.json()
             try:
+                rjson = r.json()
                 quote_data = rjson['query']['results']['quote']
                 quote_data.reverse()
                 quote['Data'] = quote_data
