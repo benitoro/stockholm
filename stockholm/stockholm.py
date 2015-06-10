@@ -328,9 +328,9 @@ class Stockholm(object):
                             temp_data.append(d)
                     quote['Data'] = temp_data
                 except KeyError as e:
-                    print("Key Error")
+                    print("Data Process: Key Error")
                     print(e)
-                    print(quote)
+                    ## print(quote)
 
         ## calculate Change / 5 10 20 30 Day MA
         for quote in all_quotes:
