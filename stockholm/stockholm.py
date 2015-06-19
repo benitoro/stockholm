@@ -558,9 +558,10 @@ class Stockholm(object):
             test['Symbol'] = quote['Symbol']
             test['Method'] = quote['Method']
             test['Type'] = quote['Type']
-            test['KDJ_K'] = quote['Data'][target_idx]['KDJ_K']
-            test['KDJ_D'] = quote['Data'][target_idx]['KDJ_D']
-            test['KDJ_J'] = quote['Data'][target_idx]['KDJ_J']
+            if('KDJ_K' in quote['Data'][target_idx]):
+                test['KDJ_K'] = quote['Data'][target_idx]['KDJ_K']
+                test['KDJ_D'] = quote['Data'][target_idx]['KDJ_D']
+                test['KDJ_J'] = quote['Data'][target_idx]['KDJ_J']
             test['Close'] = quote['Data'][target_idx]['Close']
             test['Change'] = quote['Data'][target_idx]['Change']
             test['Vol_Change'] = quote['Data'][target_idx]['Vol_Change']
