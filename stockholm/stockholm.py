@@ -260,10 +260,10 @@ class Stockholm(object):
         if(quote is not None and quote['Symbol'] is not None):        
             yquery = 'select * from yahoo.finance.historicaldata where symbol = "' + quote['Symbol'].upper() + '" and startDate = "' + start_date + '" and endDate = "' + end_date + '"'
             r_params = {'q': yquery, 'format': 'json', 'env': 'http://datatables.org/alltables.env'}
-            r = requests.get(self.yql_url, params=r_params)
-            ## print(r.url)
-            ## print(r.text)
             try:
+                r = requests.get(self.yql_url, params=r_params)
+                ## print(r.url)
+                ## print(r.text)
                 rjson = r.json()
                 quote_data = rjson['query']['results']['quote']
                 quote_data.reverse()
