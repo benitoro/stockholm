@@ -465,7 +465,7 @@ class Stockholm(object):
         
         is_date_valid = False
         for quote in all_quotes:
-            if(quote['Symbol'] in self.index_array):
+            if(quote['Symbol'] in self.index_array and 'Data' in quote):
                 for quote_data in quote['Data']:
                     if(quote_data['Date'] == date):
                         is_date_valid = True
