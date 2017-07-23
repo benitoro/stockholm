@@ -11,22 +11,22 @@ Stockholm
 
 能干什么
 -------------
-如果你想基于沪深股市行情数据进行一些工作，它可以帮助你导出指定时间范围内所有沪深A股的行情数据和一些技术指标，包括代码、名称、开盘、收盘、最高、最低、成交量、均线、KDJ等。<br \>
-如果你对于技术分析有兴趣，它可以帮你根据你自定义的策略在所有沪深A股的范围内进行选股，并回测选股策略的收益情况（详细说明后面会有）。这样就能够非常方便快捷地测试和调整基于技术分析的选股策略。<br \>
+如果你想基于沪深股市行情数据进行一些工作，它可以帮助你导出指定时间范围内所有沪深A股的行情数据和一些技术指标，包括代码、名称、开盘、收盘、最高、最低、成交量、均线、KDJ等。<br>
+如果你对于技术分析有兴趣，它可以帮你根据你自定义的策略在所有沪深A股的范围内进行选股，并回测选股策略的收益情况（详细说明后面会有）。这样就能够非常方便快捷地测试和调整基于技术分析的选股策略。<br>
 
 还有些什么问题
 -------------
-行情数据目前来源于雅虎YQL，每日数据的更新时间不太稳定（一般在中国时间午夜左右）。<br \>
-目前支持的技术指标还不多，还有一些指标如MACD和BOLL后续会增加。<br \>
-在回测中，如果有在选定时间内发生过除权的股票，收益计算会有问题。<br \>
-导出格式目前只支持CSV和JSON文本。MongoDB和MySQL会考虑后续加入。<br \>
+行情数据目前来源于雅虎YQL，每日数据的更新时间不太稳定（一般在中国时间午夜左右）。<br>
+目前支持的技术指标还不多，还有一些指标如MACD和BOLL后续会增加。<br>
+在回测中，如果有在选定时间内发生过除权的股票，收益计算会有问题。<br>
+导出格式目前只支持CSV和JSON文本。MongoDB和MySQL会考虑后续加入。<br>
 
 环境
 -------------
-Python 3.4以上<br \>
-[Requests](http://www.python-requests.org/en/latest/)<br \>
-[PyMongo](http://api.mongodb.org/python/current/installation.html)<br \>
-OSX和CentOS已测。Windows尚未测试，输出路径可能有问题。<br \>
+Python 3.4以上<br>
+[Requests](http://www.python-requests.org/en/latest/)<br>
+[PyMongo](http://api.mongodb.org/python/current/installation.html)<br>
+OSX和CentOS已测。Windows尚未测试，输出路径可能有问题。<br>
 
 ```shell
 pip install requests
@@ -73,8 +73,8 @@ python main.py [-h] [--reload {Y,N}] [--portfolio {Y,N}]
 	}
 ]
 ```
-Date(日期); Open(开盘价); Close(收盘价); High(当日最高); Low(当日最低); Change(价格变化%); Volume(成交量); Vol_Change(成交量较前日变化); MA_5(5日均线); MA_10(10日均线); MA_20(20日均线); MA_30(30日均线); KDJ_K(KDJ指标K); KDJ_D(KDJ指标D); KDJ_J(KDJ指标J); <br \>
-以上数据都可以用于制定选股策略，后面会介绍具体方法。<br \>
+Date(日期); Open(开盘价); Close(收盘价); High(当日最高); Low(当日最低); Change(价格变化%); Volume(成交量); Vol_Change(成交量较前日变化); MA_5(5日均线); MA_10(10日均线); MA_20(20日均线); MA_30(30日均线); KDJ_K(KDJ指标K); KDJ_D(KDJ指标D); KDJ_J(KDJ指标J); <br>
+以上数据都可以用于制定选股策略，后面会介绍具体方法。<br>
 
 ### 选股策略测试数据:
 ```shell
@@ -99,8 +99,8 @@ Close(收盘价); Change(价格变化%); Vol_Change(成交量较前日变化); M
 
 行情数据抓取范例
 -------------
-获取从当前日期倒推100天(不是100个交易日)的所有沪深股票行情数据。<br />
-执行完成后，数据在当前用户文件夹下./tmp/stockholm_export/stockholm_export.json<br />
+获取从当前日期倒推100天(不是100个交易日)的所有沪深股票行情数据。<br>
+执行完成后，数据在当前用户文件夹下./tmp/stockholm_export/stockholm_export.json<br>
 ```shell
 python main.py
 ```
@@ -111,18 +111,18 @@ python main.py --output=csv
 
 选股策略测试范例
 -------------
-选股策略范例文件内容如下(包括在源码中)<br />
+选股策略范例文件内容如下(包括在源码中)<br>
 选股策略"method 1"是:前前个交易日的KDJ指标的J值小于20+前个交易日的KDJ指标J值小于20+当前交易日的KDJ指标J值比上个交易日大40+当前交易日成交量变化大于100%<br />
 ```shell
 ## Portfolio selection methodology sample file
 
 [method 1]:day(-2).{KDJ_J}<20 and day(-1).{KDJ_J}<20 and day(0).{KDJ_J}-day(-1).{KDJ_J}>=40 and day(0).{Vol_Change}>=1
 ```
-以当前系统日期为目标日期进行倒推60天得选股策略测试。<br />
+以当前系统日期为目标日期进行倒推60天得选股策略测试。<br>
 不重新抓取行情数据并执行测试命令。<br />
-执行完毕后，会将测试结果按照每天一个文件的方式保存在./tmp/stockholm_export/。<br />
-文件名格式为result_yyyy-MM-dd.json(例如result_2015-03-24.json)。<br />
+执行完毕后，会将测试结果按照每天一个文件的方式保存在./tmp/stockholm_export/。<br>
+文件名格式为result_yyyy-MM-dd.json(例如result_2015-03-24.json)。<br>
 ```shell
 python main.py --reload=N --portfolio=Y
 ```
-通过更改测试文件中的选股策略公式，可以随意测试指定时间范围内的选股效果。<br />
+通过更改测试文件中的选股策略公式，可以随意测试指定时间范围内的选股效果。<br>
