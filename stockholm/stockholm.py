@@ -11,6 +11,7 @@ import re
 from pymongo import MongoClient
 from multiprocessing.dummy import Pool as ThreadPool
 from functools import partial
+import tushare as ts
 
 class Stockholm(object):
 
@@ -254,20 +255,34 @@ class Stockholm(object):
 
     def load_quote_data(self, quote, start_date, end_date, is_retry, counter):
         ## print("load_quote_data start..." + "\n")
-        
         start = timeit.default_timer()
-
-        if(quote is not None and quote['Symbol'] is not None):        
-            yquery = 'select * from yahoo.finance.historicaldata where symbol = "' + quote['Symbol'].upper() + '" and startDate = "' + start_date + '" and endDate = "' + end_date + '"'
-            r_params = {'q': yquery, 'format': 'json', 'env': 'http://datatables.org/alltables.env'}
+        if(quote is not None and quote['Symbol'] is not None):
             try:
-                r = requests.get(self.yql_url, params=r_params)
-                ## print(r.url)
-                ## print(r.text)
-                rjson = r.json()
-                quote_data = rjson['query']['results']['quote']
-                quote_data.reverse()
-                quote['Data'] = quote_data
+                # open high close low volume price_change p_change ma5 ma10 ma20 v_ma5 v_ma10 v_ma20
+                df = ts.get_hist_data(quote['Symbol'][0:6],start=start_date,end=end_date)
+                rjson = json.loads(df.to_json())
+                dates = rjson["open"].keys()
+                temp_data = []
+                for date in dates:
+                    # print(date)
+                    d = {'Symbol': quote['Symbol']}
+                    d['Date'] = date
+                    d['Open'] = rjson["open"][date]
+                    d['Close'] = rjson["close"][date]
+                    d['High'] = rjson["high"][date]
+                    d['Low'] = rjson["low"][date]
+                    d['Volume'] = rjson["volume"][date]
+                    d['Price_Change'] =rjson["price_change"][date]
+                    d['P_Change'] = rjson["p_change"][date]
+                    d['MA_5'] = rjson["ma5"][date]
+                    d['MA_10'] = rjson["ma10"][date]
+                    d['MA_20'] = rjson["ma20"][date]
+                    d['V_MA_5'] = rjson["v_ma5"][date]
+                    d['V_MA_10'] = rjson["v_ma10"][date]
+                    d['V_MA_20'] = rjson["v_ma20"][date]
+                    temp_data.append(d)
+                temp_data.reverse()
+                quote['Data'] = temp_data
                 if(not is_retry):
                     counter.append(1)          
                 
@@ -667,5 +682,3 @@ class Stockholm(object):
         if(self.gen_portfolio == 'Y'):
             print("Start portfolio testing...\n")
             self.data_test(self.target_date, self.test_date_range, output_types)
-
-
